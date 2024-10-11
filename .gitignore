@@ -1,0 +1,27 @@
+# amplify
+node_modules
+.amplify
+amplify_outputs*
+amplifyconfiguration*
+
+# Xcode project files
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace
+!default.xcworkspace
+xcuserdata
+
+# macOS
+.DS_Store
+
+# Build and derived data
+DerivedData/
+*.app
+*.ipa
+*.dSYM
+
+# Swift Package Manager
+.build/

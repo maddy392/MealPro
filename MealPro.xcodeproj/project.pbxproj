@@ -6,8 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8A6784732CB98CE30081EE7F /* AWSAPIPlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 8A6784722CB98CE30081EE7F /* AWSAPIPlugin */; };
+		8A6784752CB98CE30081EE7F /* AWSCognitoAuthPlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 8A6784742CB98CE30081EE7F /* AWSCognitoAuthPlugin */; };
+		8A6784772CB98CE30081EE7F /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = 8A6784762CB98CE30081EE7F /* Amplify */; };
+		8A6784982CB98EDD0081EE7F /* amplify_outputs.json in Resources */ = {isa = PBXBuildFile; fileRef = 8A6784972CB98EDD0081EE7F /* amplify_outputs.json */; };
+		8A67849B2CB98F5D0081EE7F /* Authenticator in Frameworks */ = {isa = PBXBuildFile; productRef = 8A67849A2CB98F5D0081EE7F /* Authenticator */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		8A6784572CB987460081EE7F /* MealPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MealPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A6784972CB98EDD0081EE7F /* amplify_outputs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = amplify_outputs.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +32,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A67849B2CB98F5D0081EE7F /* Authenticator in Frameworks */,
+				8A6784772CB98CE30081EE7F /* Amplify in Frameworks */,
+				8A6784732CB98CE30081EE7F /* AWSAPIPlugin in Frameworks */,
+				8A6784752CB98CE30081EE7F /* AWSCognitoAuthPlugin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,6 +45,7 @@
 		8A67844E2CB987460081EE7F = {
 			isa = PBXGroup;
 			children = (
+				8A6784972CB98EDD0081EE7F /* amplify_outputs.json */,
 				8A6784592CB987460081EE7F /* MealPro */,
 				8A6784582CB987460081EE7F /* Products */,
 			);
@@ -65,6 +79,10 @@
 			);
 			name = MealPro;
 			packageProductDependencies = (
+				8A6784722CB98CE30081EE7F /* AWSAPIPlugin */,
+				8A6784742CB98CE30081EE7F /* AWSCognitoAuthPlugin */,
+				8A6784762CB98CE30081EE7F /* Amplify */,
+				8A67849A2CB98F5D0081EE7F /* Authenticator */,
 			);
 			productName = MealPro;
 			productReference = 8A6784572CB987460081EE7F /* MealPro.app */;
@@ -94,6 +112,10 @@
 			);
 			mainGroup = 8A67844E2CB987460081EE7F;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */,
+				8A6784992CB98F5D0081EE7F /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8A6784582CB987460081EE7F /* Products */;
 			projectDirPath = "";
@@ -109,6 +131,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A6784982CB98EDD0081EE7F /* amplify_outputs.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +347,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aws-amplify/amplify-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.42.1;
+			};
+		};
+		8A6784992CB98F5D0081EE7F /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aws-amplify/amplify-ui-swift-authenticator";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.8;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8A6784722CB98CE30081EE7F /* AWSAPIPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */;
+			productName = AWSAPIPlugin;
+		};
+		8A6784742CB98CE30081EE7F /* AWSCognitoAuthPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */;
+			productName = AWSCognitoAuthPlugin;
+		};
+		8A6784762CB98CE30081EE7F /* Amplify */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */;
+			productName = Amplify;
+		};
+		8A67849A2CB98F5D0081EE7F /* Authenticator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A6784992CB98F5D0081EE7F /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */;
+			productName = Authenticator;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8A67844F2CB987460081EE7F /* Project object */;
 }
