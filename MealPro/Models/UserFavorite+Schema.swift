@@ -26,6 +26,7 @@ extension UserFavorite {
     model.syncPluralName = "UserFavorites"
     
     model.attributes(
+      .index(fields: ["userId", "recipeId"], name: "userFavoritesByUserIdAndRecipeId"),
       .primaryKey(fields: [userFavorite.id])
     )
     

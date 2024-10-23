@@ -10,10 +10,13 @@ const schema = a.schema({
 
   UserFavorite: a.model({
     userId: a.id().required(),
-    recipeId: a.string().required(),
+    recipeId: a.integer().required(),
     recipe: a.belongsTo("Recipe", "recipeId"),
     user: a.belongsTo("User", "userId"),
-  }),
+  }).secondaryIndexes((index) => [
+    index("userId")
+  .queryField("userFavoritesByUser")
+  .sortKeys(["recipeId"])]),
 
   User: a.model({
     userId: a.id().required(),
@@ -23,7 +26,7 @@ const schema = a.schema({
 
   Recipe: a
     .model({
-      recipeId: a.string().required(),
+      recipeId: a.integer().required(),
       title: a.string().required(),
       image: a.string(),
       imageType: a.string(),

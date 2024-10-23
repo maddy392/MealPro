@@ -33,7 +33,7 @@ extension Recipe {
     )
     
     model.fields(
-      .field(recipe.recipeId, is: .required, ofType: .string),
+      .field(recipe.recipeId, is: .required, ofType: .int),
       .field(recipe.title, is: .required, ofType: .string),
       .field(recipe.image, is: .optional, ofType: .string),
       .field(recipe.imageType, is: .optional, ofType: .string),
@@ -53,13 +53,13 @@ extension Recipe: ModelIdentifiable {
 }
 
 extension Recipe.IdentifierProtocol {
-  public static func identifier(recipeId: String) -> Self {
+  public static func identifier(recipeId: Int) -> Self {
     .make(fields:[(name: "recipeId", value: recipeId)])
   }
 }
 extension ModelPath where ModelType == Recipe {
-  public var recipeId: FieldPath<String>   {
-      string("recipeId") 
+  public var recipeId: FieldPath<Int>   {
+      int("recipeId") 
     }
   public var title: FieldPath<String>   {
       string("title") 

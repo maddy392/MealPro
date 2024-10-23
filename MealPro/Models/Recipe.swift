@@ -3,8 +3,8 @@ import Amplify
 import Foundation
 
 public struct Recipe: Model, Identifiable {
-  public var id: String { recipeId } // Conforming to Identifiable by mapping 'id' to 'recipeId'
-  public let recipeId: String
+  public var id: Int { recipeId } // Conforming to Identifiable by mapping 'id' to 'recipeId'
+  public let recipeId: Int
   public var title: String
   public var image: String?
   public var imageType: String?
@@ -12,7 +12,7 @@ public struct Recipe: Model, Identifiable {
   public var createdAt: Temporal.DateTime?
   public var updatedAt: Temporal.DateTime?
   
-  public init(recipeId: String,
+  public init(recipeId: Int,
       title: String,
       image: String? = nil,
       imageType: String? = nil,
@@ -25,7 +25,7 @@ public struct Recipe: Model, Identifiable {
       createdAt: nil,
       updatedAt: nil)
   }
-  internal init(recipeId: String,
+  internal init(recipeId: Int,
       title: String,
       image: String? = nil,
       imageType: String? = nil,
