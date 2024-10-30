@@ -81,7 +81,8 @@ class FavoriteViewModel: ObservableObject {
                 return
             }
             
-            let deleteRequest = GraphQLRequest<DeleteUserFavoriteResponse>
+//            let deleteRequest = GraphQLRequest<DeleteUserFavoriteResponse>
+            print("Hello; i havent written this peice of code yet")
             
         } catch {
             print("pass")
@@ -144,26 +145,40 @@ class FavoriteViewModel: ObservableObject {
                 return
             }
             
-//             Step 3: get user
-            guard let userResponse = try await Amplify.API.query(request: .get(User.self, byIdentifier: .identifier(userId: userId))).get() else {
-                print("User not found")
-                return
-            }
+            // Step 3: get user
+            let opName = "createUserFavorite"
+            let createUserFavoriteQuery = """
+                mutation CreateUserFavorite($recipeId: Int!, $userId: ID!) {
+                  \(opName)(input: {recipeId: $recipeId, userId: $userId}) {
+                    id
+                    recipeId
+                  }
+                }
+                """
+                
+                let vars: [String: Any] = [
+                    "recipeId": existingRecipe.recipeId,
+                    "userId": userId
+                ]
             
-            // Step 4: Create UserFavorite with full User and Recipe objects
-            let newUserFavorite = UserFavorite(
-                recipe: existingRecipe,
-                user: userResponse
+            let graphqlRequest = GraphQLRequest<UserFavoriteItem>(
+                document: createUserFavoriteQuery,
+                variables: vars, 
+                responseType: UserFavoriteItem.self,
+                decodePath: opName
             )
-            print(newUserFavorite)
+            print(graphqlRequest)
             
             // step 5: create userFavorite in the backend
-            let favoriteResponse = try await Amplify.API.mutate(request: .create(newUserFavorite))
+            let favoriteResponse = try await Amplify.API.mutate(request: graphqlRequest)
+            
+            
             switch favoriteResponse {
             case .success(let favorite):
-//                DispatchQueue.main.async {
-//                    self.userFavorites.append(favorite)
-//                }
+                DispatchQueue.main.async {
+                    self.userFavorites.append(favorite)
+                    self.favoriteRecipeIds.insert(favorite.recipeId)
+                }
                 print("Successfully favorited recipe: \(favorite)")
             case .failure(let error):
                 print("Failed to favorite recipe: \(error.errorDescription)")
