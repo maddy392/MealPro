@@ -8,12 +8,6 @@
 import Amplify
 import SwiftUI
 
-struct PaginatedList<ModelType: Model>: Decodable {
-    let items: [ModelType]
-    let nextToken: String?
-    let id: String?
-}
-
 
 @MainActor
 class FavoriteViewModel: ObservableObject {
@@ -81,11 +75,39 @@ class FavoriteViewModel: ObservableObject {
                 return
             }
             
-//            let deleteRequest = GraphQLRequest<DeleteUserFavoriteResponse>
-            print("Hello; i havent written this peice of code yet")
+            let operationName = "deleteUserFavorite"
+            let document = """
+              mutation DeleteUserFavorite($id: ID!) {
+                \(operationName)(input: { id: $id }) {
+                    id
+                    recipeId
+                  }
+                }
+            """
             
+            let variables: [String: Any ] = ["id": userFavoriteToDelete.id]
+            
+            let request = GraphQLRequest<UserFavoriteItem>(
+                document: document,
+                variables: variables,
+                responseType: UserFavoriteItem.self,
+                decodePath: operationName
+            )
+            
+            let deleteResponse = try await Amplify.API.mutate(request: request)
+            
+            switch deleteResponse {
+            case .success(let deletedFavorite):
+                DispatchQueue.main.async {
+                    self.userFavorites.removeAll(where: {$0.id == deletedFavorite.id})
+                    self.favoriteRecipeIds.remove(deletedFavorite.recipeId)
+                }
+                print("Successfully unfavorited recipe with ID: \(deletedFavorite.recipeId)")
+            case .failure(let error):
+                print("Failed to unfavorite recipe: \(error.errorDescription)")
+            }
         } catch {
-            print("pass")
+            print("Error in unfavoriting recipe: \(error)")
         }
     }
     
@@ -94,7 +116,7 @@ class FavoriteViewModel: ObservableObject {
     }
     
     func favorite(recipe: Recipe) async {
-        print("Attempting to favorite recipe: \(recipe)")
+        print("Attempting to favorite recipe: \(recipe.id): \(recipe.title)")
         do {
             // Step 1: Fetch current User
             let userId = try await Amplify.Auth.getCurrentUser().userId
@@ -115,7 +137,7 @@ class FavoriteViewModel: ObservableObject {
             
             let request = GraphQLRequest<GetRecipeResponse>(document: document, variables: variables, responseType: GetRecipeResponse.self)
             let recipeResponse = try await Amplify.API.query(request: request)
-            print(recipeResponse)
+//            print(recipeResponse)
             
             switch recipeResponse {
             case .success(let fetchedRecipe):
@@ -163,15 +185,13 @@ class FavoriteViewModel: ObservableObject {
             
             let graphqlRequest = GraphQLRequest<UserFavoriteItem>(
                 document: createUserFavoriteQuery,
-                variables: vars, 
+                variables: vars,
                 responseType: UserFavoriteItem.self,
                 decodePath: opName
             )
-            print(graphqlRequest)
             
             // step 5: create userFavorite in the backend
             let favoriteResponse = try await Amplify.API.mutate(request: graphqlRequest)
-            
             
             switch favoriteResponse {
             case .success(let favorite):
@@ -179,7 +199,7 @@ class FavoriteViewModel: ObservableObject {
                     self.userFavorites.append(favorite)
                     self.favoriteRecipeIds.insert(favorite.recipeId)
                 }
-                print("Successfully favorited recipe: \(favorite)")
+                print("Successfully favorited recipe: \(favorite.recipeId)")
             case .failure(let error):
                 print("Failed to favorite recipe: \(error.errorDescription)")
             }
