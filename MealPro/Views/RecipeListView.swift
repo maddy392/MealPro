@@ -15,7 +15,7 @@ let staticRecipes = [
 
 struct RecipeListView: View {
 
-    @StateObject private var favoriteViewModel = FavoriteViewModel()
+    @EnvironmentObject private var favoriteViewModel: FavoriteViewModel
     @State private var recipes = staticRecipes
 
     var body: some View {

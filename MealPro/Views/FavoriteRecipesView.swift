@@ -9,32 +9,46 @@ import SwiftUI
 import Amplify
 
 struct FavoriteRecipesView: View {
-    @StateObject private var favoriteViewModel = FavoriteViewModel()
-    
+    @EnvironmentObject private var favoriteViewModel: FavoriteViewModel
+
     var body: some View {
-        Text("Hello World")
-//        List {
-//            ForEach(favoriteViewModel.favoriteRecipes) { recipe in
-//                HStack {
-//                    Text(recipe.title)
-//                    AsyncImage(url: URL(string: recipe.image!)) { image in
-//                        image
-//                            .resizable()
-//                            .scaledToFit()
-//                            .frame(height: 100)
-//                    } placeholder: {
-//                        ProgressView()
-//                    }
-//                }
-//            }
-//        }
-//        .onAppear {
-//            Task {
-//                await favoriteViewModel.subscribeToFavoriteChanges()
-//            }
-//        }
-//        .onDisappear {
-//            favoriteViewModel.cancelSubscription()
-//        }
+        Group {
+            if favoriteViewModel.userFavorites.isEmpty {
+                Text("No favorite recipes yet!")
+                    .font(.title2)
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                List {
+                    ForEach(favoriteViewModel.userFavorites, id: \.id) { favoriteItem in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(favoriteItem.recipe.title)
+                                    .font(.headline)
+                                if let imageUrl = favoriteItem.recipe.image, let url = URL(string: imageUrl) {
+                                    AsyncImage(url: url) { image in
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    } placeholder: {
+                                        ProgressView()
+                                    }
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            Task {
+                await favoriteViewModel.fetchUserFavorites()
+            }
+        }
+//        .navigationTitle("Favorite Recipes")
     }
 }

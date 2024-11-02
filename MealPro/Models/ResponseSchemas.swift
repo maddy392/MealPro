@@ -17,3 +17,13 @@ struct UserFavoritesResponse: Decodable {
     let items: [UserFavoriteItem]
     let nextToken: String?
 }
+
+struct UserFavoriteWithRecipeResponse: Decodable {
+    let items: [UserFavoriteWithRecipeItem]
+    let nextToken: String?
+}
+
+struct UserFavoriteWithRecipeItem: Decodable {
+    let id: String
+    let recipe: Recipe
+}

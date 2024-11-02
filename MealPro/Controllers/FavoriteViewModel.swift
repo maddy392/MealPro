@@ -11,8 +11,9 @@ import SwiftUI
 
 @MainActor
 class FavoriteViewModel: ObservableObject {
-    @Published var userFavorites: [UserFavoriteItem] = []
+    @Published var userFavorites: [UserFavoriteWithRecipeItem] = []
     private var favoriteRecipeIds: Set<Int> = []
+    static let shared = FavoriteViewModel()
     
     init() {
         Task {
@@ -31,15 +32,20 @@ class FavoriteViewModel: ObservableObject {
               nextToken
                 items {
                   id
-                  recipeId
+                  recipe {
+                    recipeId
+                    title
+                    image
+                    imageType
+                  }
                 }
               }
             }
             """
             
-            let request = GraphQLRequest<UserFavoritesResponse>(
+            let request = GraphQLRequest<UserFavoriteWithRecipeResponse>(
                 document: document,
-                responseType: UserFavoritesResponse.self,
+                responseType: UserFavoriteWithRecipeResponse.self,
                 decodePath: operationName
             )
             
@@ -49,7 +55,7 @@ class FavoriteViewModel: ObservableObject {
             case .success(let userFavoriteResponse):
                 DispatchQueue.main.async {
                     self.userFavorites = userFavoriteResponse.items
-                    self.favoriteRecipeIds = Set (self.userFavorites.compactMap { $0.recipeId })
+                    self.favoriteRecipeIds = Set(self.userFavorites.map { $0.recipe.recipeId })
                 }
                 print("Favorite Recipe IDs: \(favoriteRecipeIds)")
             case .failure(let error):
@@ -70,7 +76,7 @@ class FavoriteViewModel: ObservableObject {
     
     func unFavorite(recipe: Recipe) async {
         do {
-            guard let userFavoriteToDelete = userFavorites.first(where: {$0.recipeId == recipe.recipeId }) else {
+            guard let userFavoriteToDelete = userFavorites.first(where: {$0.recipe.recipeId == recipe.recipeId }) else {
                 print("No UserFavorite found for recipe: \(recipe.recipeId)")
                 return
             }
@@ -196,7 +202,7 @@ class FavoriteViewModel: ObservableObject {
             switch favoriteResponse {
             case .success(let favorite):
                 DispatchQueue.main.async {
-                    self.userFavorites.append(favorite)
+                    self.userFavorites.append(UserFavoriteWithRecipeItem(id: favorite.id, recipe: existingRecipe))
                     self.favoriteRecipeIds.insert(favorite.recipeId)
                 }
                 print("Successfully favorited recipe: \(favorite.recipeId)")
