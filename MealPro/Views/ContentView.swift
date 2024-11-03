@@ -12,6 +12,10 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
+            AllRecipesView()
+                .tabItem {
+                    Label("Recipes", systemImage: "frying.pan.fill")
+                }
             RecipeListView()
                 .tabItem {
                     Label("Recipes", systemImage: "list.dash")
