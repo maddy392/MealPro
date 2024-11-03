@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { fetchRecipes } from '../functions/fetchRecipes/resource';
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -16,13 +17,15 @@ const schema = a.schema({
   }).secondaryIndexes((index) => [
     index("userId")
   .queryField("userFavoritesByUser")
-  .sortKeys(["recipeId"])]),
+  .sortKeys(["recipeId"])])
+  .authorization((allow) => allow.owner()),
 
   User: a.model({
     userId: a.id().required(),
     username: a.string().required(),
     favorites: a.hasMany("UserFavorite", "userId")
-  }).identifier(['userId']),
+  }).identifier(['userId'])
+  .authorization((allow) => allow.owner()),
 
   Recipe: a
     .model({
@@ -31,9 +34,19 @@ const schema = a.schema({
       image: a.string(),
       imageType: a.string(),
       userFavorites: a.hasMany("UserFavorite", "recipeId"),
-    }).identifier(['recipeId']), 
+    }).identifier(['recipeId'])
+    .authorization((allow) => allow.owner()), 
 
-  }).authorization((allow) => allow.owner())
+  fetchRecipes: a
+    .query()
+    .arguments({
+      cuisine: a.string(), 
+      diet: a.string(), 
+    })
+    .returns(a.ref("Recipe").array())
+    .handler(a.handler.function(fetchRecipes))
+    .authorization((allow) => allow.authenticated())
+  })
 
 export type Schema = ClientSchema<typeof schema>;
 
