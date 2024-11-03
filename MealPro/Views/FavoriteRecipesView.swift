@@ -49,6 +49,5 @@ struct FavoriteRecipesView: View {
                 await favoriteViewModel.fetchUserFavorites()
             }
         }
-//        .navigationTitle("Favorite Recipes")
     }
 }
