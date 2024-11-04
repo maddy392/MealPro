@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { fetchRecipes } from '../functions/fetchRecipes/resource';
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -7,19 +8,52 @@ specifies that any unauthenticated user can "create", "read", "update",
 and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-  Todo: a
+
+  UserFavorite: a.model({
+    userId: a.id().required(),
+    recipeId: a.integer().required(),
+    recipe: a.belongsTo("Recipe", "recipeId"),
+    user: a.belongsTo("User", "userId"),
+  }).secondaryIndexes((index) => [
+    index("userId")
+  .queryField("userFavoritesByUser")
+  .sortKeys(["recipeId"])])
+  .authorization((allow) => allow.owner()),
+
+  User: a.model({
+    userId: a.id().required(),
+    username: a.string().required(),
+    favorites: a.hasMany("UserFavorite", "userId")
+  }).identifier(['userId'])
+  .authorization((allow) => allow.owner()),
+
+  Recipe: a
     .model({
-      content: a.string(),
+      recipeId: a.integer().required(),
+      title: a.string().required(),
+      image: a.string(),
+      imageType: a.string(),
+      userFavorites: a.hasMany("UserFavorite", "recipeId"),
+    }).identifier(['recipeId'])
+    .authorization((allow) => allow.owner()), 
+
+  fetchRecipes: a
+    .query()
+    .arguments({
+      cuisine: a.string(), 
+      diet: a.string(), 
     })
-    .authorization((allow) => [allow.guest()]),
-});
+    .returns(a.ref("Recipe").array())
+    .handler(a.handler.function(fetchRecipes))
+    .authorization((allow) => allow.authenticated())
+  })
 
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'iam',
+    defaultAuthorizationMode: 'userPool',
   },
 });
 

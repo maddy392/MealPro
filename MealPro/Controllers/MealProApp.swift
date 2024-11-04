@@ -16,7 +16,7 @@ struct MealProApp: App {
     init() {
         do {
             try Amplify.add(plugin: AWSCognitoAuthPlugin())
-            try Amplify.add(plugin: AWSAPIPlugin())
+            try Amplify.add(plugin: AWSAPIPlugin(modelRegistration: AmplifyModels()))
             try Amplify.configure(with: .amplifyOutputs)
             print("Amplify configuration success !")
         } catch {
