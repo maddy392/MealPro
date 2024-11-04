@@ -14,6 +14,7 @@ struct AllRecipesView: View {
     @State private var recipes: [Recipe] = []
     @State private var isLoading: Bool = false
     @State private var selectedRecipe: Recipe? = nil
+    @EnvironmentObject private var favoriteViewModel: FavoriteViewModel
     
     let cuisines = [
         "All",

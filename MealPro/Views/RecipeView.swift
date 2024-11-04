@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RecipeView: View {
     let recipe: Recipe
+    @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     
     var body: some View {
         HStack {
@@ -28,32 +29,21 @@ struct RecipeView: View {
                     .font(.headline)
                     .lineLimit(2)
                 
-//                HStack {
-//                    if recipe.veryHealthy {
-//                        Label("Healthy", systemImage: "heart.square.fill")
-//                            .font(.caption)
-//                            .foregroundStyle(.green)
-//                    }
-//                    
-//                    if recipe.veryPopular {
-//                        Label("Popular", systemImage: "star.fill")
-//                            .font(.caption)
-//                            .foregroundColor(.yellow)
-//                    }
-//
-//                    if recipe.cheap {
-//                        Label("Cheap", systemImage: "dollarsign.square.fill")
-//                            .font(.caption)
-//                            .foregroundColor(.blue)
-//                    }
-//                }
-//                
-//                Text("Health Score: \(recipe.healthScore)")
-//                    .font(.caption)
-//                    .foregroundStyle(.secondary)
+                HStack {
+                    Button(action: {
+                        Task {
+                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
+                        }
+                    }) {
+                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
+                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                }
             }
             .padding(.leading, 8)
         }
         .padding(.vertical, 5)
+        .contentShape(Rectangle())
     }
 }
