@@ -25,3 +25,9 @@ DerivedData/
 
 # Swift Package Manager
 .build/
+
+agent/ActionGroupsAndInvokeAgent/.gitignore
+agent/ActionGroupsAndInvokeAgent/.aws-sam/*
+agent/ActionGroupsAndInvokeAgent/README.md
+agent/ActionGroupsAndInvokeAgent/__init__.py
+agent/ActionGroupsAndInvokeAgent/tests/*
