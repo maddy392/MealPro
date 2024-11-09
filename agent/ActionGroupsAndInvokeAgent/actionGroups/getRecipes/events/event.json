@@ -1,0 +1,26 @@
+{
+  "messageVersion": "1.0",
+  "agent": {
+      "name": "string",
+      "id": "string",
+      "alias": "string",
+      "version": "string"
+  },
+  "inputText": "string",
+  "sessionId": "string",
+  "actionGroup": "string",
+  "function": "string",
+  "parameters": [
+      {
+          "name": "query",
+          "type": "string",
+          "value": "kale recipes"
+      }
+  ],
+  "sessionAttributes": {
+      "string": "string"
+  },
+  "promptSessionAttributes": {
+      "string": "string"
+  }
+}
