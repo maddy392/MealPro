@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Streaming Bedrock Response with FastAPI on AWS Lambda
+
+Globals:
+  Function:
+    Timeout: 300
+
+Resources:
+  InvokeAgentFunctionV2:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      MemorySize: 512
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          AWS_LWA_INVOKE_MODE: RESPONSE_STREAM
+      Policies:
+      - Statement:
+        - Sid: BedrockInvokePolicy
+          Effect: Allow
+          Action:
+          - bedrock:InvokeAgent
+          Resource: 'arn:aws:bedrock:us-east-1:294090989896:agent-alias/*/*'
+      Tracing: Active
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./invokeAgent
+      DockerTag: v1
+
+  InvokeAgentFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: AWS_IAM
+      TargetFunctionArn: !GetAtt InvokeAgentFunctionV2.Arn
+      InvokeMode: RESPONSE_STREAM
+
+  # Add permission for the Cognito role to invoke the Lambda function URL
+  InvokeAgentFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt InvokeAgentFunctionV2.Arn
+      Principal: 'arn:aws:iam::294090989896:role/amplify-mealpro-madpro-sa-amplifyAuthauthenticatedU-m7QWiZOO2DKe'
+      Action: 'lambda:InvokeFunctionUrl'
+      FunctionUrlAuthType: 'AWS_IAM'
+  
+  GetRecipesFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: actionGroups/getRecipes
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Architectures:
+      - x86_64
+      Policies:
+       - SSMParameterReadPolicy:
+          ParameterName: /amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY
+       - Statement:
+         - Effect: Allow
+           Action: 
+            - ssm:GetParameter
+           Resource:
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY
+
+  GetRecipesFunctionBedrockPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetRecipesFunction
+      Principal: bedrock.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+
+Outputs:
+  InvokeAgentFunctionUrl:
+    Description: "Function URL for InvokeAgent function"
+    Value: !GetAtt InvokeAgentFunctionUrl.FunctionUrl
+
+  InvokeAgentFunctionV2Arn:
+    Description: "InvokeAgent Lambda Function ARN"
+    Value: !GetAtt InvokeAgentFunctionV2.Arn
+
+  GetRecipesFunction:
+    Description: "GetRecipes Lambda Function ARN"
+    Value: !GetAtt GetRecipesFunction.Arn
