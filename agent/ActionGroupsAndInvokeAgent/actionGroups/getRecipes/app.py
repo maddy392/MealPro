@@ -20,6 +20,10 @@ def lambda_handler(event, context):
     url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch"
 
     params = {item["name"]:item["value"] for item in parameters}
+    params['instructionsRequired'] = True
+    # params['addRecipeInformation'] = True
+    params['number'] = 5
+    params["sort"] = "popularity"
     headers = {
     'X-RapidAPI-Key': api_key
     }
@@ -27,6 +31,7 @@ def lambda_handler(event, context):
     response = requests.request("GET", url, headers=headers, params=params)
 
     recipe_results = response.json()['results']
+    modified_recipes = [{**{k if k != 'id' else 'recipeId': v for k, v in recipe.items()}} for recipe in recipe_results]
 
 
     return {
@@ -37,7 +42,7 @@ def lambda_handler(event, context):
         "functionResponse": {
             "responseBody": {
                 "TEXT": { 
-                    "body": json.dumps(recipe_results)
+                    "body": json.dumps(modified_recipes)
                 }
             }
         }
