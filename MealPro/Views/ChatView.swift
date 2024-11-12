@@ -19,8 +19,13 @@ struct ChatView: View {
                     LazyVStack {
                         Spacer(minLength: 20)
                         ForEach(viewModel.messages, id: \.id) { message in
-                            MessageView(currentMessage: message)
-                                .id(message.id)
+                            if let recipes = message.recipes, !recipes.isEmpty {
+                                MessageView(currentMessage: message)
+                                    .id(message.id)
+                            } else {
+                                MessageView(currentMessage: message)
+                                    .id(message.id)
+                            }
                         }
                     }
                     .padding()

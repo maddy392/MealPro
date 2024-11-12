@@ -11,6 +11,29 @@ struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
     let content: String
     let isCurrentUser: Bool
+    let recipes: [Recipe]?
+    
+    // Convenience initializer for text messages
+    init(content: String, isCurrentUser: Bool) {
+        self.content = content
+        self.isCurrentUser = isCurrentUser
+        self.recipes = nil
+    }
+    
+    // Convenience initializer for messages containing recipes
+    init(recipes: [Recipe], isCurrentUser: Bool) {
+        self.content = ""
+        self.isCurrentUser = isCurrentUser
+        self.recipes = recipes
+    }
+    
+    // Custom Equatable conformance
+    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.content == rhs.content &&
+        lhs.isCurrentUser == rhs.isCurrentUser &&
+        lhs.recipes?.map { $0.recipeId } == rhs.recipes?.map { $0.recipeId }
+    }
 }
 
 struct SystemMessage: Identifiable {
