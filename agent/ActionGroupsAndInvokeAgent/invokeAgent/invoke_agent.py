@@ -72,13 +72,23 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 	sessionId = invoke_agent_input.sessionId
 
 	# Call the Bedrock client to invoke the agent
-	response = bedrock_client.invoke_agent(
-		agentId=agentId,
-		agentAliasId=agentAliasId,
-		sessionId=sessionId,
-		inputText=inputText, 
-		enableTrace=True, 
-	)
+	try:
+		response = bedrock_client.invoke_agent(
+			agentId=agentId,
+			agentAliasId=agentAliasId,
+			sessionId=sessionId,
+			inputText=inputText, 
+			enableTrace=True, 
+		)
+	except Exception as e:
+		output_msg = {
+			"messageDetail": "Bedrock Error",
+			"messageType": "trace",
+			"text": f"Error invoking agent: {e}", 
+			"display_msg": "Agent has errors! Please try again later."
+		}
+		yield json.dumps(output_msg) + "\n"
+		return
 
 	# extract the stream from the response
 	stream = response.get('completion')
