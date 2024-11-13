@@ -13,15 +13,15 @@ struct RecipeView: View {
     
     var body: some View {
         HStack {
-            AsyncImage(url: URL(string: recipe.image!)) { image in
+            AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-90x90.jpg")) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 150, height: 120)
+                    .frame(width: 90, height: 90)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
             } placeholder: {
                 ProgressView()
-                    .frame(width: 100, height: 100)
+                    .frame(width: 90, height: 90)
             }
             
             VStack(alignment: .leading, spacing: 5) {
@@ -46,4 +46,9 @@ struct RecipeView: View {
         .padding(.vertical, 5)
         .contentShape(Rectangle())
     }
+}
+
+#Preview {
+    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg"))
+        .environmentObject(FavoriteViewModel.shared)
 }

@@ -21,32 +21,7 @@ struct RecipeListView: View {
     var body: some View {
         List {
             ForEach($recipes, id: \.recipeId) { $recipe in  // Use recipes, not $recipes
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(recipe.title)  // No need for binding here
-                            .font(.headline)
-
-                        if let imageUrl = recipe.image, let url = URL(string: imageUrl) {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                            } placeholder: {
-                                ProgressView()
-                            }
-                        }
-                    }
-                    Spacer()
-                    Button(action: {
-                        Task {
-                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
-                        }
-                    }) {
-                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
-                    }
-                }
+                RecipeView(recipe: recipe)
             }
         }
         .onAppear {
@@ -56,3 +31,7 @@ struct RecipeListView: View {
         }
     }
 }
+
+//#Preview {
+//    R
+//}

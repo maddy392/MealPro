@@ -21,25 +21,7 @@ struct FavoriteRecipesView: View {
             } else {
                 List {
                     ForEach(favoriteViewModel.userFavorites, id: \.id) { favoriteItem in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(favoriteItem.recipe.title)
-                                    .font(.headline)
-                                if let imageUrl = favoriteItem.recipe.image, let url = URL(string: imageUrl) {
-                                    AsyncImage(url: url) { image in
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 100, height: 100)
-                                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    } placeholder: {
-                                        ProgressView()
-                                    }
-                                }
-                            }
-                            Spacer()
-                        }
-                        .padding(.vertical, 8)
+                        RecipeView(recipe: favoriteItem.recipe)
                     }
                 }
             }
