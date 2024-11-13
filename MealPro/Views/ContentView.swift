@@ -16,10 +16,10 @@ struct ContentView: View {
                 .tabItem {
                     Label("Recipes", systemImage: "frying.pan.fill")
                 }
-//            RecipeListView()
-//                .tabItem {
-//                    Label("Recipes", systemImage: "list.dash")
-//                }
+            ChatView()
+                .tabItem {
+                    Label("RecipeAI", systemImage: "apple.intelligence")
+                }
             FavoriteRecipesView()
                 .tabItem {
                     Label("Favorites", systemImage: "heart.fill")
