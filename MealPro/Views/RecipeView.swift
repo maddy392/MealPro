@@ -39,6 +39,30 @@ struct RecipeView: View {
                             .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
                     }
                     .buttonStyle(BorderlessButtonStyle())
+                    
+                    if let healthy = recipe.veryHealthy, healthy == true {
+                        Image(systemName: "figure.run.circle.fill")
+                            .foregroundStyle(.mint)
+                    }
+                    if let popularity = recipe.veryPopular, popularity == true {
+                        Image(systemName: "star.circle.fill")
+                            .foregroundStyle(.yellow)
+                    }
+                    
+                    if let cheap = recipe.cheap, cheap == true {
+                        Image(systemName: "dollarsign.circle.fill")
+                            .foregroundStyle(.green)
+                    }
+                }
+                
+                if let readyInMinutes = recipe.readyInMinutes {
+                    HStack {
+                        Image(systemName: "clock.badge.fill")
+                            .symbolRenderingMode(.multicolor)
+                        
+                        Text("\(readyInMinutes) mins")
+                            .font(.caption)
+                    }
                 }
             }
             .padding(.leading, 8)
@@ -49,6 +73,6 @@ struct RecipeView: View {
 }
 
 #Preview {
-    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg"))
+    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", veryHealthy: true, cheap: true, veryPopular: true, readyInMinutes: 40))
         .environmentObject(FavoriteViewModel.shared)
 }

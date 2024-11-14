@@ -122,7 +122,7 @@ class FavoriteViewModel: ObservableObject {
     }
     
     func favorite(recipe: Recipe) async {
-        print("Attempting to favorite recipe: \(recipe.id): \(recipe.title)")
+        print("Attempting to favorite recipe: \(recipe.recipeId): \(recipe.title)")
         do {
             // Step 1: Fetch current User
             let userId = try await Amplify.Auth.getCurrentUser().userId

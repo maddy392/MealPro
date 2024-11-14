@@ -17,6 +17,8 @@ export const handler: Schema["fetchRecipes"]["functionHandler"] = async (event, 
 		url.searchParams.set('cuisine', cuisine);
 		url.searchParams.set('diet', diet);
 		url.searchParams.append('sort', 'popularity');
+		url.searchParams.append('addRecipeInformation', 'true');
+		url.searchParams.append('addRecipeNutrition', 'true');
 
 		const response = await fetch(url.toString(), {
 			headers: {
@@ -34,6 +36,13 @@ export const handler: Schema["fetchRecipes"]["functionHandler"] = async (event, 
 			title: recipe.title,
 			image: recipe.image,
 			imageType: recipe.imageType,
+			veryPopular: recipe.veryPopular,
+			veryHealthy: recipe.veryHealthy,
+			pricePerServing: recipe.pricePerServing,
+			healthScore: recipe.healthScore,
+			readyInMinutes: recipe.readyInMinutes,
+			servings: recipe.servings,
+			sourceUrl: recipe.sourceUrl,
 		}));
 		return recipes;
 	} catch (error) {

@@ -170,6 +170,13 @@ struct AllRecipesView: View {
                     title
                     image
                     imageType
+                    veryHealthy
+                    veryPopular
+                    pricePerServing
+                    healthScore
+                    readyInMinutes
+                    servings
+                    sourceUrl
                 }
             }
         """
