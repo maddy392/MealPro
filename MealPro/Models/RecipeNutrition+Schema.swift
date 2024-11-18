@@ -5,7 +5,7 @@ import Foundation
 extension RecipeNutrition {
   // MARK: - CodingKeys 
    public enum CodingKeys: String, ModelKey {
-    case calorificBreakdown
+    case caloricBreakdown
     case nutrients
     case properties
     case ingredients
@@ -21,7 +21,7 @@ extension RecipeNutrition {
     model.syncPluralName = "RecipeNutritions"
     
     model.fields(
-      .field(recipeNutrition.calorificBreakdown, is: .optional, ofType: .embedded(type: CalorificBreakdown.self)),
+      .field(recipeNutrition.caloricBreakdown, is: .optional, ofType: .embedded(type: CaloricBreakdown.self)),
       .field(recipeNutrition.nutrients, is: .optional, ofType: .embeddedCollection(of: Nutrient.self)),
       .field(recipeNutrition.properties, is: .optional, ofType: .embeddedCollection(of: NutritionProperty.self)),
       .field(recipeNutrition.ingredients, is: .optional, ofType: .embeddedCollection(of: Ingredient.self))

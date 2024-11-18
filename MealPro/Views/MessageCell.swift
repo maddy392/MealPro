@@ -30,7 +30,6 @@ struct MessageCell: View {
                 }
             }
             .padding(10)
-//            .background(Color(UIColor.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }

@@ -38,6 +38,7 @@ extension Recipe {
     case spoonacularSourceUrl
     case spoonacularScore
     case nutrition
+    case analyzedInstructions
     case userFavorites
     case createdAt
     case updatedAt
@@ -93,8 +94,9 @@ extension Recipe {
       .field(recipe.diets, is: .optional, ofType: .embeddedCollection(of: String.self)),
       .field(recipe.occasions, is: .optional, ofType: .embeddedCollection(of: String.self)),
       .field(recipe.spoonacularSourceUrl, is: .optional, ofType: .string),
-      .field(recipe.spoonacularScore, is: .optional, ofType: .int),
+      .field(recipe.spoonacularScore, is: .optional, ofType: .double),
       .field(recipe.nutrition, is: .optional, ofType: .embedded(type: RecipeNutrition.self)),
+      .field(recipe.analyzedInstructions, is: .optional, ofType: .embeddedCollection(of: AnalyzedInstruction.self)),
       .hasMany(recipe.userFavorites, is: .optional, ofType: UserFavorite.self, associatedFields: [UserFavorite.keys.recipe]),
       .field(recipe.createdAt, is: .optional, isReadOnly: true, ofType: .dateTime),
       .field(recipe.updatedAt, is: .optional, isReadOnly: true, ofType: .dateTime)
@@ -209,8 +211,8 @@ extension ModelPath where ModelType == Recipe {
   public var spoonacularSourceUrl: FieldPath<String>   {
       string("spoonacularSourceUrl") 
     }
-  public var spoonacularScore: FieldPath<Int>   {
-      int("spoonacularScore") 
+  public var spoonacularScore: FieldPath<Double>   {
+      double("spoonacularScore") 
     }
   public var userFavorites: ModelPath<UserFavorite>   {
       UserFavorite.Path(name: "userFavorites", isCollection: true, parent: self) 

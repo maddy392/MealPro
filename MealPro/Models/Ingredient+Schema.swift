@@ -9,6 +9,8 @@ extension Ingredient {
     case name
     case amount
     case unit
+    case localizedName
+    case image
   }
   
   public static let keys = CodingKeys.self
@@ -24,7 +26,9 @@ extension Ingredient {
       .field(ingredient.id, is: .required, ofType: .int),
       .field(ingredient.name, is: .required, ofType: .string),
       .field(ingredient.amount, is: .optional, ofType: .double),
-      .field(ingredient.unit, is: .optional, ofType: .string)
+      .field(ingredient.unit, is: .optional, ofType: .string),
+      .field(ingredient.localizedName, is: .optional, ofType: .string),
+      .field(ingredient.image, is: .optional, ofType: .string)
     )
     }
 }

@@ -170,13 +170,68 @@ struct AllRecipesView: View {
                     title
                     image
                     imageType
+                    vegetarian
+                    vegan
+                    glutenFree
                     veryHealthy
+                    cheap
                     veryPopular
-                    pricePerServing
+                    sustainable
+                    lowFodmap
+                    weightWatcherSmartPoints
+                    gaps
+                    preparationMinutes
+                    cookingMinutes
+                    aggregateLikes
                     healthScore
+                    creditsText
+                    sourceName
+                    pricePerServing
                     readyInMinutes
                     servings
                     sourceUrl
+                    summary
+                    cuisines
+                    dishTypes
+                    diets
+                    occasions
+                    spoonacularSourceUrl
+                    spoonacularScore
+                    nutrition {
+                      caloricBreakdown {
+                        percentCarbs
+                        percentFat
+                        percentProtein
+                      }
+                      ingredients {
+                        amount
+                        id
+                        name
+                        unit
+                      }
+                      nutrients {
+                        unit
+                        percentOfDailyNeeds
+                        name
+                        amount
+                      }
+                      properties {
+                        amount
+                        name
+                        unit
+                      }
+                    }
+                    analyzedInstructions {
+                      name
+                      steps {
+                        number
+                        step
+                        equipment {
+                          id
+                          name
+                        }
+                      }
+                    }
                 }
             }
         """
@@ -190,11 +245,13 @@ struct AllRecipesView: View {
             responseType: [Recipe].self,
             decodePath: operationName
         )
+//        print(request)
         
         do {
             let response = try await Amplify.API.query(request: request)
             switch response {
             case .success(let recipes):
+//                print(response)
                 DispatchQueue.main.async {
                     self.recipes = recipes
                 }

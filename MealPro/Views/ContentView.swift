@@ -11,24 +11,29 @@ struct ContentView: View {
     @EnvironmentObject var authController: AuthController
     
     var body: some View {
-        TabView {
-            AllRecipesView()
-                .tabItem {
-                    Label("Recipes", systemImage: "frying.pan.fill")
-                }
-            ChatView()
-                .tabItem {
-                    Label("RecipeAI", systemImage: "apple.intelligence")
-                }
-            FavoriteRecipesView()
-                .tabItem {
-                    Label("Favorites", systemImage: "heart.fill")
-                }
-        }
-        .toolbar {
-            Button("Sign Out") {
-                Task {
-                    await authController.signOut()
+        NavigationView {
+            TabView {
+                AllRecipesView()
+                    .tabItem {
+                        Label("Recipes", systemImage: "frying.pan.fill")
+                    }
+                ChatView()
+                    .tabItem {
+                        Label("RecipeAI", systemImage: "apple.intelligence")
+                    }
+                FavoriteRecipesView()
+                    .tabItem {
+                        Label("Favorites", systemImage: "heart.fill")
+                    }
+            }
+//            .navigationTitle("MealPro") // Optional title
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Sign Out") {
+                        Task {
+                            await authController.signOut()
+                        }
+                    }
                 }
             }
         }
@@ -39,3 +44,6 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+
+//public var id: Int { recipeId } // `id` property required by `Identifiable`
+

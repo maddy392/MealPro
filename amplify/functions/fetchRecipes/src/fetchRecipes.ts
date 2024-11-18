@@ -19,6 +19,7 @@ export const handler: Schema["fetchRecipes"]["functionHandler"] = async (event, 
 		url.searchParams.append('sort', 'popularity');
 		url.searchParams.append('addRecipeInformation', 'true');
 		url.searchParams.append('addRecipeNutrition', 'true');
+		url.searchParams.append('instructionsRequired', 'true');
 
 		const response = await fetch(url.toString(), {
 			headers: {
@@ -31,19 +32,12 @@ export const handler: Schema["fetchRecipes"]["functionHandler"] = async (event, 
 		}
 
 		const data = await response.json();
-		const recipes = data.results.map((recipe: any) => ({
-			recipeId: recipe.id,
-			title: recipe.title,
-			image: recipe.image,
-			imageType: recipe.imageType,
-			veryPopular: recipe.veryPopular,
-			veryHealthy: recipe.veryHealthy,
-			pricePerServing: recipe.pricePerServing,
-			healthScore: recipe.healthScore,
-			readyInMinutes: recipe.readyInMinutes,
-			servings: recipe.servings,
-			sourceUrl: recipe.sourceUrl,
-		}));
+		console.log(data);
+		const recipes = data.results.map((recipe: any) => {
+			const { id, ...rest } = recipe;
+			return { recipeId: id, ...rest };
+		});
+		console.log(recipes);
 		return recipes;
 	} catch (error) {
 			console.error('Error fetching recipes:', error);

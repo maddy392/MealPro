@@ -40,19 +40,39 @@ const schema = a.schema({
     name: a.string().required(),
     amount: a.float(),
     unit: a.string(),
+    localizedName: a.string(),
+    image: a.string()
   }),
 
-  CalorificBreakdown: a.customType({
+  Equipment: a.customType({
+    id: a.integer().required(),
+    name: a.string().required(),
+    localizedName: a.string(),
+    image: a.string()
+  }),
+
+  CaloricBreakdown: a.customType({
     percentProtein: a.float(),
     percentFat: a.float(),
     percentCarbs: a.float(),
   }),
 
   NutritionProperty: a.customType({
-    nutritionPropertyId: a.id().required(),
     name: a.string().required(),
     amount: a.float(),
     unit: a.string(),
+  }),
+
+  InstructionStep: a.customType({
+    number: a.integer().required(), 
+    step: a.string().required(),
+    ingredients: a.ref("Ingredient").array(),
+    equipment: a.ref("Equipment").array(),
+  }),
+
+  AnalyzedInstruction: a.customType({
+    name: a.string(),
+    steps: a.ref("InstructionStep").array(),
   }),
 
   Recipe: a.model({
@@ -87,13 +107,14 @@ const schema = a.schema({
       diets: a.string().array(),
       occasions: a.string().array(),
       spoonacularSourceUrl: a.url(),
-      spoonacularScore: a.integer(),
+      spoonacularScore: a.float(),
       nutrition: a.customType({
-        calorificBreakdown: a.ref("CalorificBreakdown"),
+        caloricBreakdown: a.ref("CaloricBreakdown"),
         nutrients: a.ref("Nutrient").array(),
         properties: a.ref("NutritionProperty").array(),
         ingredients: a.ref("Ingredient").array()
       }),
+      analyzedInstructions: a.ref("AnalyzedInstruction").array(),
       userFavorites: a.hasMany("UserFavorite", "recipeId"),
     }).identifier(['recipeId'])
     .authorization((allow) => allow.authenticated()), 

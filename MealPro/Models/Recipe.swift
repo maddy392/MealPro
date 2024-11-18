@@ -3,7 +3,7 @@ import Amplify
 import Foundation
 
 public struct Recipe: Model, Identifiable {
-  public var id: Int { recipeId } // Conforming to Identifiable by mapping 'id' to 'recipeId'
+  public var id: Int { recipeId } // `id` property required by `Identifiable`
   public let recipeId: Int
   public var title: String
   public var image: String?
@@ -35,8 +35,9 @@ public struct Recipe: Model, Identifiable {
   public var diets: [String?]?
   public var occasions: [String?]?
   public var spoonacularSourceUrl: String?
-  public var spoonacularScore: Int?
+  public var spoonacularScore: Double?
   public var nutrition: RecipeNutrition?
+  public var analyzedInstructions: [AnalyzedInstruction?]?
   public var userFavorites: List<UserFavorite>?
   public var createdAt: Temporal.DateTime?
   public var updatedAt: Temporal.DateTime?
@@ -72,8 +73,9 @@ public struct Recipe: Model, Identifiable {
       diets: [String?]? = nil,
       occasions: [String?]? = nil,
       spoonacularSourceUrl: String? = nil,
-      spoonacularScore: Int? = nil,
+      spoonacularScore: Double? = nil,
       nutrition: RecipeNutrition? = nil,
+      analyzedInstructions: [AnalyzedInstruction?]? = nil,
       userFavorites: List<UserFavorite>? = []) {
     self.init(recipeId: recipeId,
       title: title,
@@ -108,6 +110,7 @@ public struct Recipe: Model, Identifiable {
       spoonacularSourceUrl: spoonacularSourceUrl,
       spoonacularScore: spoonacularScore,
       nutrition: nutrition,
+      analyzedInstructions: analyzedInstructions,
       userFavorites: userFavorites,
       createdAt: nil,
       updatedAt: nil)
@@ -143,8 +146,9 @@ public struct Recipe: Model, Identifiable {
       diets: [String?]? = nil,
       occasions: [String?]? = nil,
       spoonacularSourceUrl: String? = nil,
-      spoonacularScore: Int? = nil,
+      spoonacularScore: Double? = nil,
       nutrition: RecipeNutrition? = nil,
+      analyzedInstructions: [AnalyzedInstruction?]? = nil,
       userFavorites: List<UserFavorite>? = [],
       createdAt: Temporal.DateTime? = nil,
       updatedAt: Temporal.DateTime? = nil) {
@@ -181,6 +185,7 @@ public struct Recipe: Model, Identifiable {
       self.spoonacularSourceUrl = spoonacularSourceUrl
       self.spoonacularScore = spoonacularScore
       self.nutrition = nutrition
+      self.analyzedInstructions = analyzedInstructions
       self.userFavorites = userFavorites
       self.createdAt = createdAt
       self.updatedAt = updatedAt
