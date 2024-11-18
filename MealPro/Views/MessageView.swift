@@ -15,10 +15,6 @@ struct MessageView: View {
         HStack(alignment: .bottom, spacing: 10) {
             if currentMessage.isCurrentUser {
                 Spacer()
-//                Image(systemName: "person.circle.fill")
-//                    .resizable()
-//                    .frame(width: 4, height: 4, alignment: .center)
-//                    .clipShape(Circle())
             }
             if let recipes = currentMessage.recipes, !recipes.isEmpty {
                 MessageCell(recipes: recipes, isCurrentUser: currentMessage.isCurrentUser)

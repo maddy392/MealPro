@@ -65,6 +65,8 @@ struct ChatView: View {
                 .padding()
             }
         }
+        .padding(.top, 16)
+        .navigationBarTitle("Chat", displayMode: .inline)
     }
     private func sendUserMessage() {
         let message = userInput.trimmingCharacters(in: .whitespacesAndNewlines)

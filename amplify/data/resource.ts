@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { fetchRecipes } from '../functions/fetchRecipes/resource';
+import { identifyUser } from 'aws-amplify/push-notifications';
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -27,15 +28,96 @@ const schema = a.schema({
   }).identifier(['userId'])
   .authorization((allow) => allow.owner()),
 
-  Recipe: a
-    .model({
+  Nutrient: a.customType({
+    name: a.string().required(),
+    amount: a.float(),
+    unit: a.string(),
+    percentOfDailyNeeds: a.float(),
+  }),
+
+  Ingredient: a.customType({
+    id: a.integer().required(),
+    name: a.string().required(),
+    amount: a.float(),
+    unit: a.string(),
+    localizedName: a.string(),
+    image: a.string()
+  }),
+
+  Equipment: a.customType({
+    id: a.integer().required(),
+    name: a.string().required(),
+    localizedName: a.string(),
+    image: a.string()
+  }),
+
+  CaloricBreakdown: a.customType({
+    percentProtein: a.float(),
+    percentFat: a.float(),
+    percentCarbs: a.float(),
+  }),
+
+  NutritionProperty: a.customType({
+    name: a.string().required(),
+    amount: a.float(),
+    unit: a.string(),
+  }),
+
+  InstructionStep: a.customType({
+    number: a.integer().required(), 
+    step: a.string().required(),
+    ingredients: a.ref("Ingredient").array(),
+    equipment: a.ref("Equipment").array(),
+  }),
+
+  AnalyzedInstruction: a.customType({
+    name: a.string(),
+    steps: a.ref("InstructionStep").array(),
+  }),
+
+  Recipe: a.model({
       recipeId: a.integer().required(),
       title: a.string().required(),
       image: a.string(),
       imageType: a.string(),
+      vegetarian: a.boolean(),
+      vegan: a.boolean(),
+      glutenFree: a.boolean(),
+      dairyFree: a.boolean(),
+      veryHealthy: a.boolean(),
+      cheap: a.boolean(),
+      veryPopular: a.boolean(),
+      sustainable: a.boolean(),
+      lowFodmap: a.boolean(),
+      weightWatcherSmartPoints: a.integer(),
+      gaps: a.string(),
+      preparationMinutes: a.integer(),
+      cookingMinutes: a.integer(),
+      aggregateLikes: a.integer(),
+      healthScore: a.integer(),
+      creditsText: a.string(),
+      sourceName: a.string(),
+      pricePerServing: a.float(),
+      readyInMinutes: a.integer(),
+      servings: a.integer(),
+      sourceUrl: a.url(),
+      summary: a.string(),
+      cuisines: a.string().array(),
+      dishTypes: a.string().array(),
+      diets: a.string().array(),
+      occasions: a.string().array(),
+      spoonacularSourceUrl: a.url(),
+      spoonacularScore: a.float(),
+      nutrition: a.customType({
+        caloricBreakdown: a.ref("CaloricBreakdown"),
+        nutrients: a.ref("Nutrient").array(),
+        properties: a.ref("NutritionProperty").array(),
+        ingredients: a.ref("Ingredient").array()
+      }),
+      analyzedInstructions: a.ref("AnalyzedInstruction").array(),
       userFavorites: a.hasMany("UserFavorite", "recipeId"),
     }).identifier(['recipeId'])
-    .authorization((allow) => allow.owner()), 
+    .authorization((allow) => allow.authenticated()), 
 
   fetchRecipes: a
     .query()
@@ -56,6 +138,8 @@ export const data = defineData({
     defaultAuthorizationMode: 'userPool',
   },
 });
+
+// npx ampx generate graphql-client-code --format modelgen --model-target swift --profile mealPro --out MealPro/Models
 
 /*== STEP 2 ===============================================================
 Go to your frontend source code. From your client-side code, generate a

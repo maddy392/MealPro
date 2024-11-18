@@ -63,6 +63,7 @@ class ChatViewModel: ObservableObject {
                 let (bytes, _) = try await URLSession.shared.bytes(for: signedRequest)
                 
                 for try await line in bytes.lines {
+                    print(line)
                     await handleLine(line)
                 }
             } else {
@@ -85,6 +86,7 @@ class ChatViewModel: ObservableObject {
                     let messageType = json["messageType"] as? String
                     
                     if messageType == "chunk" {
+//                        print(json)
                         handleChunkResponse(json)
                     } else if messageType == "trace" {
                         handleTraceMessage(json)
@@ -105,12 +107,13 @@ class ChatViewModel: ObservableObject {
         }
         
         if let recipesData = json["recipes"] {
+//            print(recipesData)
             do {
                 let recipesJsonData = try JSONSerialization.data(withJSONObject: recipesData)
 //                print(recipesJsonData)
                 let recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
                 print(recipes)
-                let recipeTitles = recipes.map { $0.title }.joined(separator: "\n")
+//                let recipeTitles = recipes.map { $0.title }.joined(separator: "\n")
                 let recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
                 messages.append(recipeMessage)
             } catch {

@@ -13,15 +13,15 @@ struct RecipeView: View {
     
     var body: some View {
         HStack {
-            AsyncImage(url: URL(string: recipe.image!)) { image in
+            AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-90x90.jpg")) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 150, height: 120)
+                    .frame(width: 90, height: 90)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
             } placeholder: {
                 ProgressView()
-                    .frame(width: 100, height: 100)
+                    .frame(width: 90, height: 90)
             }
             
             VStack(alignment: .leading, spacing: 5) {
@@ -39,6 +39,30 @@ struct RecipeView: View {
                             .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
                     }
                     .buttonStyle(BorderlessButtonStyle())
+                    
+                    if let healthy = recipe.veryHealthy, healthy == true {
+                        Image(systemName: "figure.run.circle.fill")
+                            .foregroundStyle(.mint)
+                    }
+                    if let popularity = recipe.veryPopular, popularity == true {
+                        Image(systemName: "star.circle.fill")
+                            .foregroundStyle(.yellow)
+                    }
+                    
+                    if let cheap = recipe.cheap, cheap == true {
+                        Image(systemName: "dollarsign.circle.fill")
+                            .foregroundStyle(.green)
+                    }
+                }
+                
+                if let readyInMinutes = recipe.readyInMinutes {
+                    HStack {
+                        Image(systemName: "clock.badge.fill")
+                            .symbolRenderingMode(.multicolor)
+                        
+                        Text("\(readyInMinutes) mins")
+                            .font(.caption)
+                    }
                 }
             }
             .padding(.leading, 8)
@@ -46,4 +70,9 @@ struct RecipeView: View {
         .padding(.vertical, 5)
         .contentShape(Rectangle())
     }
+}
+
+#Preview {
+    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", veryHealthy: true, cheap: true, veryPopular: true, readyInMinutes: 40))
+        .environmentObject(FavoriteViewModel.shared)
 }
