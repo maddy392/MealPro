@@ -109,17 +109,20 @@ class ChatViewModel: ObservableObject {
                 let recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
 //                print(recipes)
 //                let recipeTitles = recipes.map { $0.title }.joined(separator: "\n")
-                let recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
+                var recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
+                if let finalChunk = json["text"] as? String {
+                    recipeMessage.content = finalChunk
+                }
                 messages.append(recipeMessage)
             } catch {
                 print("Failed to decode recipes: \(error)")
             }
         }
         
-        if let finalChunk = json["text"] as? String {
-            let botMessage = ChatMessage(content: finalChunk, isCurrentUser: false)
-            messages.append(botMessage)
-        }
+//        if let finalChunk = json["text"] as? String {
+//            let botMessage = ChatMessage(content: finalChunk, isCurrentUser: false)
+//            messages.append(botMessage)
+//        }
         systemMessage = nil
     }
         
