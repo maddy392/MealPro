@@ -17,7 +17,7 @@ struct MessageView: View {
                 Spacer()
             }
             if let recipes = currentMessage.recipes, !recipes.isEmpty {
-                MessageCell(recipes: recipes, isCurrentUser: currentMessage.isCurrentUser)
+                MessageCell(contentMessage: currentMessage.content, recipes: recipes, isCurrentUser: currentMessage.isCurrentUser)
             } else {
                 MessageCell(contentMessage: currentMessage.content, isCurrentUser: currentMessage.isCurrentUser)
             }

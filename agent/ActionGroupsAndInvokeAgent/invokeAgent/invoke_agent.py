@@ -70,7 +70,7 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 	agentId = invoke_agent_input.agentId or "TKAFFO7AR2"
 	inputText = invoke_agent_input.inputText
 	sessionId = invoke_agent_input.sessionId
-	print(f"Invoking Agent {agentId} and alias {agentAliasId} with input: {inputText}")
+	print(f"Invoking Agent {agentId} and alias {agentAliasId} with input: {inputText} and session ID: {sessionId}")
 
 	# Call the Bedrock client to invoke the agent
 	try:
@@ -112,6 +112,12 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 					# Decode the bytes and parse the JSON content
 					message = json.loads(raw_data)
 					print(f"Decoded JSON message: {message}")  
+					final_response = {
+							"messageType": "chunk",
+							"recipes": message["recipes"],
+							"text": message["explanation"]
+						}
+					yield json.dumps(final_response)
 
 				# Debug print to see the JSON structure
 				except json.JSONDecodeError as e:
@@ -132,13 +138,24 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 
 			elif 'trace' in event:
 				trace = event['trace']['trace']
-				processed_data = process_trace_event(trace)
-				if processed_data:
-					accumulated_data.extend(processed_data)
+				# processed_data = process_trace_event(trace)
+				# if processed_data:
+				# 	accumulated_data.extend(processed_data)
 				orchestration_trace = trace.get('orchestrationTrace')
+				postProcessingTrace = trace.get('postProcessingTrace')
+				if postProcessingTrace:
+					if "modelInvocationInput" in postProcessingTrace:
+						# message_detail = postProcessingTrace["modelInvocationInput"]["type"]
+						output_msg = {
+							"messageDetail": "modelInvocationInput",
+							"messageType": "trace",
+							"text": "Post Processing Trace",
+							"display_msg": "Formatting the final response!"
+						}
+						yield json.dumps(output_msg) + "\n"
 				# print("\nTrace event found !")
 				# print(orchestration_trace.keys())
-				if "modelInvocationInput" in orchestration_trace:
+				elif "modelInvocationInput" in orchestration_trace:
 					print("Model invocation input")
 					message_detail = orchestration_trace["modelInvocationInput"]["type"]
 					output_msg = {

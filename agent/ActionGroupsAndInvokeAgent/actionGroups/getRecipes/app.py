@@ -22,7 +22,7 @@ def lambda_handler(event, context):
     params = {item["name"]:item["value"] for item in parameters}
     params['instructionsRequired'] = True
     # params['addRecipeInformation'] = True
-    params['number'] = 5
+    params['number'] = 3
     params["sort"] = "popularity"
     headers = {
     'X-RapidAPI-Key': api_key

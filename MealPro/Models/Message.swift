@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
-    let content: String
+    var content: String
     let isCurrentUser: Bool
     let recipes: [Recipe]?
     

@@ -44,19 +44,14 @@ def create_or_update_agent(agent_name, foundation_model, role_arn, instruction, 
 					promptOverrideConfiguration = {
 						"promptConfigurations": [
 							{
-								"basePromptTemplate": postProcessingPrompt, 
+								"basePromptTemplate": postProcessingPrompt,
+								"inferenceConfiguration": { 
+									"maximumLength": 1000,
+									"temperature": 0
+								}, 
 								"promptState": "ENABLED",
 								"promptCreationMode": "OVERRIDDEN",
-								"promptType": "POST_PROCESSING", 
-								"inferenceConfiguration": {
-									"maximumLength": 1000, 
-									"stopSequences": [
-										"\t\tHuman:"
-									], 
-									"temperature": 0,
-									"topP": 1, 
-									"topK": 250
-								}
+								"promptType": "POST_PROCESSING"
 							}
 						]
 					}
@@ -121,14 +116,28 @@ def wait_for_agent_preparation(agent_id, max_attempts=30, delay=10):
 agent_name = "MealPro"
 foundation_model = "anthropic.claude-3-haiku-20240307-v1:0"
 agentResourceRoleArn = "arn:aws:iam::294090989896:role/service-role/AmazonBedrockExecutionRoleForAgents_5SVAH2QGYCW"
-instruction = """You are a helpful AI agent that helps the user to plan a meal plan using recipes that are provided for you via action group functions. Reply with recipes that are provided to you via response of action groups only. if the action group response fails recipes politely decline to answer the user. The Action groups will respond with a json response. Please respond to the user requests in a json output format only."""
+instruction = """You are a helpful AI agent that helps the user to plan a meal plan using recipes \
+	that are provided for you via action group functions. Reply with recipes that are provided \
+		to you via response of action groups only. if the action group response fails recipes \
+			politely decline to answer the user. The Action groups will respond with a \
+				json response. Please respond to the user requests in a json output format only."""
+postProcessingPrompt = json.dumps({
+  "anthropic_version": "bedrock-2023-05-31",
+  "system": "",
+  "messages": [
+    {
+      "role": "user",
+      "content": "You are an agent tasked with providing more context to an answer that a function calling agent outputs. The function calling agent takes in a user's question and calls the appropriate functions (a function call is equivalent to an API call) that it has been provided with in order to take actions in the real-world and gather more information to help answer the user's question.\n\nAt times, the function calling agent produces responses that may seem confusing to the user because the user lacks context of the actions the function calling agent has taken. Here's an example:\n<example>\nThe user tells the function calling agent: 'Acknowledge all policy engine violations under me. My alias is jsmith, start date is 09/09/2023 and end date is 10/10/2023.'\n\nAfter calling a few API's and gathering information, the function calling agent responds, 'What is the expected date of resolution for policy violation POL-001?'\n\nThis is problematic because the user did not see that the function calling agent called API's due to it being hidden in the UI of our application. Thus, we need to provide the user with more context in this response. This is where you augment the response and provide more information.\n\nHere's an example of how you would transform the function calling agent response into our ideal response to the user. This is the ideal final response that is produced from this specific scenario: 'Based on the provided data, there are 2 policy violations that need to be acknowledged - POL-001 with high risk level created on 2023-06-01, and POL-002 with medium risk level created on 2023-06-02. What is the expected date of resolution date to acknowledge the policy violation POL-001?'\n</example>\n\nIt's important to note that the ideal answer does not expose any underlying implementation details that we are trying to conceal from the user like the actual names of the functions.\n\nDo not ever include any API or function names or references to these names in any form within the final response you create. An example of a violation of this policy would look like this: 'To update the order, I called the order management APIs to change the shoe color to black and the shoe size to 10.' The final response in this example should instead look like this: 'I checked our order management system and changed the shoe color to black and the shoe size to 10.'\n\nNow you will try creating a final response. Here's the original user input <user_input>$question$</user_input>.\n\nHere is the latest raw response from the function calling agent that you should transform: <latest_response>$latest_response$</latest_response>.\n\nAnd here is the history of the actions the function calling agent has taken so far in this conversation: <history>$responses$</history>.\n\nPlease output your transformed response within <final_response></final_response> XML tags.\n\nGive your output in JSON format with keys: 'explanation'(string) and 'recipes' (list of dicts with 'recipeId', 'title', 'image', 'imageType').\n 'Explanation' is a short and precise 1-2 sentence summary of the recipes, describing the variety and qualities of the recipes. Do not use sentences like 'Based on provided information the function call found these recipes' or 'search for user input found these recipes'. If no recipes are found in <history>$responses$</history>, return an empty list for 'recipes' and for 'explanation' return 'sorry no recipes were found'.\n\nExample:\n<final_response>\n{\n\"explanation\": \"These recipes cover a variety of flavors and styles of ice cream, from classic flavors like snickerdoodle to more unique options like strawberry basil sorbet. Enjoy!\",\n\"recipes\": [\n{\n\"recipeId\": 716410,\n\"title\": \"Cannoli Ice Cream w. Pistachios & Dark Chocolate\",\n\"image\": \"https://img.spoonacular.com/recipes/716410-312x231.jpg\",\n\"imageType\": \"jpg\"\n},\n{\n\"recipeId\": 716411,\n\"title\": \"Snickerdoodle Ice Cream\",\n\"image\": \"https://img.spoonacular.com/recipes/716411-312x231.jpg\",\n\"imageType\": \"jpg\"\n},\n{\n\"recipeId\": 716424,\n\"title\": \"Strawberry Basil Sorbet (no Ice Cream Maker Necessary!)\",\n\"image\": \"https://img.spoonacular.com/recipes/716424-312x231.jpg\",\n\"imageType\": \"jpg\"\n},\n{\n\"recipeId\": 663462,\n\"title\": \"Toasted Marshmallow Ice Cream\",\n\"image\": \"https://img.spoonacular.com/recipes/663462-312x231.jpg\",\n\"imageType\": \"jpg\"\n},\n{\n\"recipeId\": 716272,\n\"title\": \"Nutella Crepes and Ice Cream\",\n\"image\": \"https://img.spoonacular.com/recipes/716272-312x231.jpg\",\n\"imageType\": \"jpg\"\n}\n]\n}\n</final_response>"
+    }
+  ]
+})
  
 agent = create_or_update_agent(
-	agent_name = agent_name,
+	agent_name=agent_name,
 	foundation_model=foundation_model,
 	role_arn=agentResourceRoleArn,
 	instruction=instruction, 
-	# postProcessingPrompt=postProcessingPrompt
+	postProcessingPrompt=postProcessingPrompt
 )
 
 
