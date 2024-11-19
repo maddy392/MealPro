@@ -33,7 +33,7 @@ class ChatViewModel: ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let recipeRequest = ["inputText": searchText]
+        let recipeRequest = ["inputText": searchText, "agentId": "TKAFFO7AR2"]
         do {
             let requestBody = try JSONSerialization.data(withJSONObject: recipeRequest)
             request.httpBody = requestBody
@@ -101,24 +101,24 @@ class ChatViewModel: ObservableObject {
     }
         
     private func handleChunkResponse(_ json: [String: Any]) {
-        if let finalChunk = json["text"] as? String {
-            let _ = ChatMessage(content: finalChunk, isCurrentUser: false)
-//            messages.append(botMessage)
-        }
-        
         if let recipesData = json["recipes"] {
 //            print(recipesData)
             do {
                 let recipesJsonData = try JSONSerialization.data(withJSONObject: recipesData)
 //                print(recipesJsonData)
                 let recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
-                print(recipes)
+//                print(recipes)
 //                let recipeTitles = recipes.map { $0.title }.joined(separator: "\n")
                 let recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
                 messages.append(recipeMessage)
             } catch {
                 print("Failed to decode recipes: \(error)")
             }
+        }
+        
+        if let finalChunk = json["text"] as? String {
+            let botMessage = ChatMessage(content: finalChunk, isCurrentUser: false)
+            messages.append(botMessage)
         }
         systemMessage = nil
     }

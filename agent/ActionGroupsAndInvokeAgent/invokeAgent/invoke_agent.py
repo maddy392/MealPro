@@ -67,9 +67,10 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 
 	# Initialize the variables from the input
 	agentAliasId: str = invoke_agent_input.agentAliasId or "TSTALIASID"
-	agentId = invoke_agent_input.agentId or "NRDQN9YORI"
+	agentId = invoke_agent_input.agentId or "TKAFFO7AR2"
 	inputText = invoke_agent_input.inputText
 	sessionId = invoke_agent_input.sessionId
+	print(f"Invoking Agent {agentId} and alias {agentAliasId} with input: {inputText}")
 
 	# Call the Bedrock client to invoke the agent
 	try:
