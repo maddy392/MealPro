@@ -23,7 +23,7 @@ struct MessageView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(7.5)
     }
 }
 

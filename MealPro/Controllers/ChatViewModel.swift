@@ -63,7 +63,7 @@ class ChatViewModel: ObservableObject {
                 let (bytes, _) = try await URLSession.shared.bytes(for: signedRequest)
                 
                 for try await line in bytes.lines {
-                    print(line)
+//                    print(line)
                     await handleLine(line)
                 }
             } else {

@@ -12,7 +12,7 @@ struct RecipeView: View {
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     
     var body: some View {
-        HStack {
+        HStack(alignment: .top) {
             AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-90x90.jpg")) { image in
                 image
                     .resizable()
@@ -24,12 +24,12 @@ struct RecipeView: View {
                     .frame(width: 90, height: 90)
             }
             
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 2.5) {
                 Text(recipe.title)
                     .font(.headline)
                     .lineLimit(2)
                 
-                HStack {
+                HStack (spacing: 5) {
                     Button(action: {
                         Task {
                             await favoriteViewModel.toggleFavoriteStatus(for: recipe)
@@ -40,39 +40,50 @@ struct RecipeView: View {
                     }
                     .buttonStyle(BorderlessButtonStyle())
                     
-                    if let healthy = recipe.veryHealthy, healthy == true {
-                        Image(systemName: "figure.run.circle.fill")
-                            .foregroundStyle(.mint)
+                    if let glutenFree = recipe.glutenFree, glutenFree == true {
+                        Image("GF")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 20, height: 20) // Match size to SF Symbols
                     }
-                    if let popularity = recipe.veryPopular, popularity == true {
-                        Image(systemName: "star.circle.fill")
-                            .foregroundStyle(.yellow)
+                    if let vegan = recipe.vegan, vegan {
+                        Text("Vegan")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
+                    } else if let vegetarian = recipe.vegetarian, vegetarian {
+                        Text("Vegetarian")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
                     }
                     
-                    if let cheap = recipe.cheap, cheap == true {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .foregroundStyle(.green)
+                    if let readyInMinutes = recipe.readyInMinutes {
+                        HStack(spacing: 2) {
+                            Image(systemName: "clock.badge.fill")
+                                .symbolRenderingMode(.multicolor)
+    //                            .frame(width: 10, height: 10)
+                            
+                            Text("\(readyInMinutes)m")
+                                .font(.caption2)
+                        }
                     }
                 }
                 
-                if let readyInMinutes = recipe.readyInMinutes {
-                    HStack {
-                        Image(systemName: "clock.badge.fill")
-                            .symbolRenderingMode(.multicolor)
-                        
-                        Text("\(readyInMinutes) mins")
-                            .font(.caption)
-                    }
+                if let healthScore = recipe.healthScore {
+                    Text("Health Score: \(healthScore)")
+                        .foregroundStyle(healthScore >= 50 ? .green : .red)
+                        .font(.caption)
                 }
+                
             }
-            .padding(.leading, 8)
+//            .padding(.leading, 8)
         }
         .padding(.vertical, 5)
         .contentShape(Rectangle())
+        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading) // Restrict width and align to leading
     }
 }
 
 #Preview {
-    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", veryHealthy: true, cheap: true, veryPopular: true, readyInMinutes: 40))
+    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", vegetarian: true, vegan: true, glutenFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
         .environmentObject(FavoriteViewModel.shared)
 }

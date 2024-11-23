@@ -21,17 +21,19 @@ def lambda_handler(event, context):
 
     params = {item["name"]:item["value"] for item in parameters}
     params['instructionsRequired'] = True
-    # params['addRecipeInformation'] = True
+    params['addRecipeInformation'] = True
     params['number'] = 3
     params["sort"] = "popularity"
     headers = {
     'X-RapidAPI-Key': api_key
     }
+    required_keys = ["id", "title", "image", "imageType", "vegetarian", "vegan", "glutenFree", "dairyFree",
+    "healthScore", "readyInMinutes"]
 
     response = requests.request("GET", url, headers=headers, params=params)
 
     recipe_results = response.json()['results']
-    modified_recipes = [{**{k if k != 'id' else 'recipeId': v for k, v in recipe.items()}} for recipe in recipe_results]
+    modified_recipes = [{**{k if k != 'id' else 'recipeId': v for k, v in recipe.items() if k in required_keys}} for recipe in recipe_results]
 
 
     return {

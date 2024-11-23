@@ -28,7 +28,7 @@ struct ChatView: View {
                             }
                         }
                     }
-                    .padding()
+//                    .padding()
                     .onChange(of: viewModel.messages) { _ in
                         withAnimation {
                             scrollViewProxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
