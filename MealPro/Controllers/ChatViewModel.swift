@@ -7,7 +7,6 @@
 import SwiftUI
 import Amplify
 import AWSCognitoIdentityProvider
-//import AWSClientRuntime
 import AWSPluginsCore
 
 class ChatViewModel: ObservableObject {
@@ -87,7 +86,7 @@ class ChatViewModel: ObservableObject {
                     
                     if messageType == "chunk" {
 //                        print(json)
-                        handleChunkResponse(json)
+                        await handleChunkResponse(json)
                     } else if messageType == "trace" {
                         handleTraceMessage(json)
                     }
@@ -100,30 +99,33 @@ class ChatViewModel: ObservableObject {
         }
     }
         
-    private func handleChunkResponse(_ json: [String: Any]) {
+    private func handleChunkResponse(_ json: [String: Any]) async {
         if let recipesData = json["recipes"] {
-//            print(recipesData)
             do {
                 let recipesJsonData = try JSONSerialization.data(withJSONObject: recipesData)
-//                print(recipesJsonData)
                 let recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
-//                print(recipes)
-//                let recipeTitles = recipes.map { $0.title }.joined(separator: "\n")
-                var recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
-                if let finalChunk = json["text"] as? String {
-                    recipeMessage.content = finalChunk
+                
+                for recipe in recipes {
+                    let recipeMessage = ChatMessage(recipe: recipe, isCurrentUser: false)
+                    DispatchQueue.main.async {
+                        self.messages.append(recipeMessage)
+                    }
+                    try? await Task.sleep(for: .milliseconds(500))
                 }
-                messages.append(recipeMessage)
             } catch {
                 print("Failed to decode recipes: \(error)")
             }
         }
         
-//        if let finalChunk = json["text"] as? String {
-//            let botMessage = ChatMessage(content: finalChunk, isCurrentUser: false)
-//            messages.append(botMessage)
-//        }
-        systemMessage = nil
+        if let finalChunk = json["text"] as? String {
+            let botMessage = ChatMessage(content: finalChunk, isCurrentUser: false)
+            DispatchQueue.main.async {
+                self.messages.append(botMessage)
+            }
+        }
+        DispatchQueue.main.async {
+            self.systemMessage = nil
+        }
     }
         
     private func handleTraceMessage(_ json: [String: Any]) {

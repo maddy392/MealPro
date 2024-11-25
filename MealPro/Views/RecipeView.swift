@@ -30,15 +30,26 @@ struct RecipeView: View {
                     .lineLimit(2)
                 
                 HStack (spacing: 5) {
-                    Button(action: {
-                        Task {
-                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
+//                    Button(action: {
+//                        Task {
+//                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
+//                        }
+//                    }) {
+//                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
+//                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
+//                    }
+//                    .buttonStyle(BorderlessButtonStyle())
+                    
+                    if let readyInMinutes = recipe.readyInMinutes {
+                        HStack(spacing: 2) {
+                            Image(systemName: "clock.badge.fill")
+                                .symbolRenderingMode(.multicolor)
+    //                            .frame(width: 10, height: 10)
+                            
+                            Text("\(readyInMinutes)m")
+                                .font(.caption2)
                         }
-                    }) {
-                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
                     }
-                    .buttonStyle(BorderlessButtonStyle())
                     
                     if let glutenFree = recipe.glutenFree, glutenFree == true {
                         Image("GF")
@@ -54,17 +65,11 @@ struct RecipeView: View {
                         Text("Vegetarian")
                             .font(.caption2)
                             .foregroundStyle(.green)
-                    }
-                    
-                    if let readyInMinutes = recipe.readyInMinutes {
-                        HStack(spacing: 2) {
-                            Image(systemName: "clock.badge.fill")
-                                .symbolRenderingMode(.multicolor)
-    //                            .frame(width: 10, height: 10)
-                            
-                            Text("\(readyInMinutes)m")
-                                .font(.caption2)
-                        }
+                    } else if let dairyFree = recipe.dairyFree, dairyFree == true {
+                        Text("Dairy")
+                            .font(.caption2)
+                            .foregroundStyle(.purple)
+                            .strikethrough()
                     }
                 }
                 
@@ -74,6 +79,24 @@ struct RecipeView: View {
                         .font(.caption)
                 }
                 
+                HStack (spacing: 2) {
+                                        
+                    Text(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "Remove from Favorites:" : "Add to Favorites:")
+                        .font(.caption2)
+                        .foregroundStyle(.gray)
+                    
+                    Button(action: {
+                        Task {
+                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
+                        }
+                    }) {
+                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
+                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    
+                    Spacer(minLength: 2)
+                }
             }
 //            .padding(.leading, 8)
         }
@@ -84,6 +107,6 @@ struct RecipeView: View {
 }
 
 #Preview {
-    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", vegetarian: true, vegan: true, glutenFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
+    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
         .environmentObject(FavoriteViewModel.shared)
 }
