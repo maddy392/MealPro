@@ -155,12 +155,7 @@ class FavoriteViewModel: ObservableObject {
                     existingRecipe = fetchedRecipe
                     print("Recipe Found")
                 } else {
-                    let newRecipe = Recipe(
-                        recipeId: recipe.recipeId,
-                        title: recipe.title,
-                        image: recipe.image,
-                        imageType: recipe.imageType
-                    )
+                    let newRecipe = recipe
                     
                     let createdRecipeResponse = try await Amplify.API.mutate(request: .create(newRecipe))
                     switch createdRecipeResponse {
