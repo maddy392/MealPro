@@ -103,7 +103,10 @@ class ChatViewModel: ObservableObject {
         if let recipesData = json["recipes"] {
             do {
                 let recipesJsonData = try JSONSerialization.data(withJSONObject: recipesData)
-                let recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
+                var recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
+                
+                // lets sort recipes by health score
+                recipes.sort { ($0.healthScore ?? 0) > ($1.healthScore ?? 0) }
                 
                 for recipe in recipes {
                     let recipeMessage = ChatMessage(recipe: recipe, isCurrentUser: false)

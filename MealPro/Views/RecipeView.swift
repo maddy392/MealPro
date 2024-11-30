@@ -65,7 +65,7 @@ struct RecipeView: View {
                         Text("Vegetarian")
                             .font(.caption2)
                             .foregroundStyle(.green)
-                    } else if let dairyFree = recipe.dairyFree, dairyFree == true {
+                    } else if let dairyFree = recipe.dairyFree, dairyFree {
                         Text("Dairy")
                             .font(.caption2)
                             .foregroundStyle(.purple)
