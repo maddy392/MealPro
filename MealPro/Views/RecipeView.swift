@@ -10,6 +10,7 @@ import SwiftUI
 struct RecipeView: View {
     let recipe: Recipe
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
+    @EnvironmentObject var chatViewModel: ChatViewModel
     
     var body: some View {
         HStack(alignment: .top) {
@@ -94,19 +95,25 @@ struct RecipeView: View {
                             .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
                     }
                     .buttonStyle(BorderlessButtonStyle())
-                    
                     Spacer(minLength: 2)
                 }
             }
-//            .padding(.leading, 8)
         }
         .padding(.vertical, 5)
         .contentShape(Rectangle())
         .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading) // Restrict width and align to leading
+        .contextMenu {
+            Button("Find Similar Recipes") {
+                chatViewModel.sendMessage("Give me more recipes like this. Recipe ID: \(recipe.recipeId)")
+//                chatViewModel.sendMessage("Recipe ID: \(recipe.recipeId)")
+                
+            }
+        }
     }
 }
 
 #Preview {
     RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
         .environmentObject(FavoriteViewModel.shared)
+        .environmentObject(ChatViewModel())
 }

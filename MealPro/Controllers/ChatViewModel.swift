@@ -18,11 +18,11 @@ class ChatViewModel: ObservableObject {
         messages.append(userMessage)
         
         Task {
-            await fetchRecipes(searchText: text)
+            await invokeAgent(searchText: text)
         }
     }
     
-    private func fetchRecipes(searchText: String) async {
+    private func invokeAgent(searchText: String) async {
         guard let url = URL(string: "https://3nfz5lwaxetbv3zhj5hskjiisq0uzebm.lambda-url.us-east-1.on.aws/api/invokeAgent") else {
             print("Invalid URL")
             return

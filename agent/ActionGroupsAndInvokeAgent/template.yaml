@@ -72,6 +72,32 @@ Resources:
       FunctionName: !Ref GetRecipesFunction
       Principal: bedrock.amazonaws.com
       SourceAccount: !Ref 'AWS::AccountId'
+  
+  GetSimilarRecipesFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: actionGroups/getSimilarRecipes
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Architectures:
+      - x86_64
+      Policies:
+       - SSMParameterReadPolicy:
+          ParameterName: /amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY
+       - Statement:
+         - Effect: Allow
+           Action: 
+            - ssm:GetParameter
+           Resource:
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY
+
+  GetSimilarRecipesFunctionBedrockPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref GetSimilarRecipesFunction
+      Principal: bedrock.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
 
 Outputs:
   InvokeAgentFunctionUrl:
@@ -85,3 +111,7 @@ Outputs:
   GetRecipesFunction:
     Description: "GetRecipes Lambda Function ARN"
     Value: !GetAtt GetRecipesFunction.Arn
+
+  GetSimilarRecipesFunction:
+    Description: "GetSimilarRecipes Lambda Function ARN"
+    Value: !GetAtt GetSimilarRecipesFunction.Arn

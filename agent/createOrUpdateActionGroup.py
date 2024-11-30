@@ -102,3 +102,34 @@ response = create_or_update_agent_action_group(
 )
 
 print(response)
+
+response = create_or_update_agent_action_group(
+	name="getSimilarRecipesActionGroup",
+	description="This Action Group fetches recipes similar to a given recipe as input. Pass on the recipeId as the main parameter;",
+	agent_id="TKAFFO7AR2",
+	agent_version="DRAFT",
+	function_arn="arn:aws:lambda:us-east-1:294090989896:function:agent-GetSimilarRecipesFunction-VarpUrowz6gg",
+	function_schema={
+				"functions": [
+					{	
+						"description": "Fetch recipes similar to a given recipe. Use recipeId parameter as your main input; ",
+						"name": "getSimilarRecipes",
+						"parameters": {
+							"recipeId": {
+								"description": "The ID of the recipe for which you want to fetch similar recipes for",
+								"type": "string",
+								"required": True
+							}, 
+							"number": {
+								"description": "The number of similar recipes to fetch",
+								"type": "integer",
+								"required": False
+							}
+						}, 
+						"requireConfirmation": "DISABLED"
+					}
+				]
+			}
+)
+
+print(response)
