@@ -60,6 +60,7 @@ struct ChatView: View {
         }
         .padding(.top, 16)
         .navigationBarTitle("Chat", displayMode: .inline)
+        .environmentObject(viewModel)
     }
 
     private func sendUserMessage() {

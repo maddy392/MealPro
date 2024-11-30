@@ -15,6 +15,10 @@ class FavoriteViewModel: ObservableObject {
     private var favoriteRecipeIds: Set<Int> = []
     static let shared = FavoriteViewModel()
     
+    var favoritesCount: Int {
+        favoriteRecipeIds.count
+    }
+    
     init() {
         Task {
             await fetchUserFavorites()

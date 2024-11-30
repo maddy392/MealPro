@@ -13,16 +13,31 @@ class ChatViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var systemMessage: SystemMessage? = nil
     
-    func sendMessage(_ text: String) {
-        let userMessage = ChatMessage(content: text, isCurrentUser: true)
-        messages.append(userMessage)
+    func sendMessage(_ text: String, recipe: Recipe? = nil) {
+        
+        let searchText: String
+        let userMessage: ChatMessage
+        
+        if let recipe = recipe {
+            searchText = "Give me more similar recipes to this recipe. Recipe ID: \(recipe.recipeId)"
+            userMessage = ChatMessage(recipe: recipe, isCurrentUser: true)
+            let userMessage2 = ChatMessage(content: "Give me more such recipes plz", isCurrentUser: true)
+            messages.append(userMessage)
+            messages.append(userMessage2)
+        } else {
+            searchText = text
+            userMessage = ChatMessage(content: searchText, isCurrentUser: true)
+            messages.append(userMessage)
+        }
+        
+//        let userMessage = ChatMessage(content: text, isCurrentUser: true)
         
         Task {
-            await fetchRecipes(searchText: text)
+            await invokeAgent(searchText: searchText)
         }
     }
     
-    private func fetchRecipes(searchText: String) async {
+    private func invokeAgent(searchText: String) async {
         guard let url = URL(string: "https://3nfz5lwaxetbv3zhj5hskjiisq0uzebm.lambda-url.us-east-1.on.aws/api/invokeAgent") else {
             print("Invalid URL")
             return
@@ -103,7 +118,10 @@ class ChatViewModel: ObservableObject {
         if let recipesData = json["recipes"] {
             do {
                 let recipesJsonData = try JSONSerialization.data(withJSONObject: recipesData)
-                let recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
+                var recipes = try JSONDecoder().decode([Recipe].self, from: recipesJsonData)
+                
+                // lets sort recipes by health score
+                recipes.sort { ($0.healthScore ?? 0) > ($1.healthScore ?? 0) }
                 
                 for recipe in recipes {
                     let recipeMessage = ChatMessage(recipe: recipe, isCurrentUser: false)

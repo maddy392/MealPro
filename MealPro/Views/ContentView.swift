@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var authController: AuthController
+    @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     
     var body: some View {
         NavigationView {
@@ -25,6 +26,7 @@ struct ContentView: View {
                     .tabItem {
                         Label("Favorites", systemImage: "heart.fill")
                     }
+                    .badge(favoriteViewModel.favoritesCount)
             }
 //            .navigationTitle("MealPro") // Optional title
             .toolbar {
