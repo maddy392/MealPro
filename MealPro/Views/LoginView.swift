@@ -19,6 +19,7 @@ struct LoginView: View {
             } else if authController.isAuthenticated {
                 ContentView()
                     .environmentObject(authController)
+                    .environmentObject(FavoriteViewModel.shared)
             } else {
                 Authenticator { _ in
                     Color.clear.onAppear {

@@ -104,7 +104,7 @@ struct RecipeView: View {
         .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading) // Restrict width and align to leading
         .contextMenu {
             Button("Find Similar Recipes") {
-                chatViewModel.sendMessage("Give me more recipes like this. Recipe ID: \(recipe.recipeId)")
+                chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
 //                chatViewModel.sendMessage("Recipe ID: \(recipe.recipeId)")
                 
             }

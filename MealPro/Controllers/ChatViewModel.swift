@@ -13,12 +13,27 @@ class ChatViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var systemMessage: SystemMessage? = nil
     
-    func sendMessage(_ text: String) {
-        let userMessage = ChatMessage(content: text, isCurrentUser: true)
-        messages.append(userMessage)
+    func sendMessage(_ text: String, recipe: Recipe? = nil) {
+        
+        let searchText: String
+        let userMessage: ChatMessage
+        
+        if let recipe = recipe {
+            searchText = "Give me more similar recipes to this recipe. Recipe ID: \(recipe.recipeId)"
+            userMessage = ChatMessage(recipe: recipe, isCurrentUser: true)
+            let userMessage2 = ChatMessage(content: "Give me more such recipes plz", isCurrentUser: true)
+            messages.append(userMessage)
+            messages.append(userMessage2)
+        } else {
+            searchText = text
+            userMessage = ChatMessage(content: searchText, isCurrentUser: true)
+            messages.append(userMessage)
+        }
+        
+//        let userMessage = ChatMessage(content: text, isCurrentUser: true)
         
         Task {
-            await invokeAgent(searchText: text)
+            await invokeAgent(searchText: searchText)
         }
     }
     
