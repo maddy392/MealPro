@@ -41,6 +41,12 @@ class FavoriteViewModel: ObservableObject {
                     title
                     image
                     imageType
+                    healthScore
+                    vegan
+                    vegetarian
+                    dairyFree
+                    readyInMinutes
+                    glutenFree
                   }
                 }
               }

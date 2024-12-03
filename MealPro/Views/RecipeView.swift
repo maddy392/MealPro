@@ -31,22 +31,10 @@ struct RecipeView: View {
                     .lineLimit(2)
                 
                 HStack (spacing: 5) {
-//                    Button(action: {
-//                        Task {
-//                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
-//                        }
-//                    }) {
-//                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
-//                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
-//                    }
-//                    .buttonStyle(BorderlessButtonStyle())
-                    
                     if let readyInMinutes = recipe.readyInMinutes {
                         HStack(spacing: 2) {
                             Image(systemName: "clock.badge.fill")
                                 .symbolRenderingMode(.multicolor)
-    //                            .frame(width: 10, height: 10)
-                            
                             Text("\(readyInMinutes)m")
                                 .font(.caption2)
                         }
@@ -105,8 +93,6 @@ struct RecipeView: View {
         .contextMenu {
             Button("Find Similar Recipes") {
                 chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
-//                chatViewModel.sendMessage("Recipe ID: \(recipe.recipeId)")
-                
             }
         }
     }
