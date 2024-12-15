@@ -54,9 +54,9 @@ def generate_json_metadata(csv_file, content_field, metadata_fields, excluded_fi
 
     print(f"JSON metadata file '{output_file}' has been generated.")
 
-csv_file = 'all_recipes.csv'
+csv_file = 'csv_data/all_recipes.csv'
 content_field = 'title'
-metadata_fields = ['id', 'title', 'vegetarian', 'vegan', 'glutenFree', 'dairyFree']
+metadata_fields = ['id', 'title', 'vegetarian', 'vegan', 'glutenFree', 'dairyFree', "readyInMinutes", "healthScore"]
 excluded_fields = ['analyzedInstructions']
 
 generate_json_metadata(csv_file, content_field, metadata_fields, excluded_fields)

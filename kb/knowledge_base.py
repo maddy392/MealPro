@@ -46,8 +46,9 @@ class BedrockKnowledgeBase:
         - Ingestion of data into the Knowledge Base
         - Deletion of all resources created
     """
-    account_number = boto3.client('sts').get_caller_identity().get('Account')
-    region_name=boto3.session.Session().region_name
+    session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
+    account_number = session.client('sts').get_caller_identity().get('Account')
+    region_name=session.region_name
     suffix = f'{region_name}-{account_number}'
     kb_name = f"default-knowledge-base-{suffix}"
     kb_description = "Default Knowledge Base"
@@ -76,17 +77,17 @@ class BedrockKnowledgeBase:
             chunking_strategy(str): The chunking strategy to be used for the Knowledge Base.
             suffix(str): A suffix to be used for naming resources.
         """
-        boto3_session = boto3.session.Session()
+        boto3_session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
         self.region_name = boto3_session.region_name
         self.iam_client = boto3_session.client('iam')
-        self.lambda_client = boto3.client('lambda')
-        self.account_number = boto3.client('sts').get_caller_identity().get('Account')
+        self.lambda_client = boto3_session.client('lambda')
+        self.account_number = boto3_session.client('sts').get_caller_identity().get('Account')
         self.suffix = suffix
-        self.identity = boto3.client('sts').get_caller_identity()['Arn']
+        self.identity = boto3_session.client('sts').get_caller_identity()['Arn']
         self.aoss_client = boto3_session.client('opensearchserverless')
-        self.s3_client = boto3.client('s3')
-        self.bedrock_agent_client = boto3.client('bedrock-agent')
-        credentials = boto3.Session().get_credentials()
+        self.s3_client = boto3_session.client('s3')
+        self.bedrock_agent_client = boto3_session.client('bedrock-agent')
+        credentials = boto3_session.get_credentials()
         self.awsauth = AWSV4SignerAuth(credentials, self.region_name, 'aoss')
         self.bucket_name = data_bucket_name
         
@@ -621,7 +622,7 @@ class BedrockKnowledgeBase:
         Create OpenSearch Serverless Collection. If already existent, retrieve
         """
         try:
-            collection = self.aoss_client.create_collection(name=self.vector_store_name, type='VECTORSEARCH')
+            collection = self.aoss_client.create_collection(name=self.vector_store_name, type='VECTORSEARCH', standbyReplicas="DISABLED")
             collection_id = collection['createCollectionDetail']['id']
             collection_arn = collection['createCollectionDetail']['arn']
         except self.aoss_client.exceptions.ConflictException:
