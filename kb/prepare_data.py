@@ -4,11 +4,11 @@ import os
 import json
 import pandas as pd
 import time
-
+import re
 
 # Set AWS profile and region
-os.environ['AWS_PROFILE'] = 'mealPro'
-os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+# os.environ['AWS_PROFILE'] = 'mealPro'
+# os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
 ssm = session.client('ssm')
@@ -25,83 +25,106 @@ params['query'] = ""
 params['instructionsRequired'] = True
 params['addRecipeInformation'] = True
 params['addRecipeNutrition'] = True
-params['number'] = 100
+params['number'] = 10
 params["sort"] = "random"
 headers = {
 'X-RapidAPI-Key': api_key
 }
 
+def save_recipe_and_metadata(recipe, output_dir):
+    # Prepare clean file name for the recipe
+    recipe_name = sanitize_filename(recipe.get("title", "Unknown_Recipe"))
+    recipe_file = os.path.join(output_dir, f"{recipe_name}.csv")
+    metadata_file = os.path.join(output_dir, f"{recipe_name}.csv.metadata.json")
 
-def flatten_recipe_data(data):
-    recipes = []
-    for recipe in data["results"]:
-        flattened_recipe = {
-            "id": recipe.get("id"),
-            "title": recipe.get("title"),
-            "vegetarian": recipe.get("vegetarian"),
-            "vegan": recipe.get("vegan"),
-            "glutenFree": recipe.get("glutenFree"),
-            "dairyFree": recipe.get("dairyFree"),
-            "veryHealthy": recipe.get("veryHealthy"),
-            "cheap": recipe.get("cheap"),
-            "veryPopular": recipe.get("veryPopular"),
-            "sustainable": recipe.get("sustainable"),
-            "lowFodmap": recipe.get("lowFodmap"),
-            "weightWatcherSmartPoints": recipe.get("weightWatcherSmartPoints"),
-            "healthScore": recipe.get("healthScore"),
-            "pricePerServing": recipe.get("pricePerServing"),
-            "readyInMinutes": recipe.get("readyInMinutes"),
-            "servings": recipe.get("servings"),
-            "sourceName": recipe.get("sourceName"),
-            "sourceUrl": recipe.get("sourceUrl"),
-            "cuisines": ", ".join(recipe.get("cuisines", [])),
-            "dishTypes": ", ".join(recipe.get("dishTypes", [])),
-            "ingredients": ", ".join(
+    # Prepare recipe file with two columns: title and analyzedInstructions
+    analyzed_instructions = " ".join(
+        step["step"] for instruction in recipe.get("analyzedInstructions", [])
+        for step in instruction.get("steps", [])
+    )
+    recipe_data = pd.DataFrame([{"title": recipe.get("title", "Not available"), 
+                                 "analyzedInstructions": analyzed_instructions}])
+    recipe_data.to_csv(recipe_file, index=False, header=True)
+
+    # Prepare metadata attributes
+    metadata = {
+        "metadataAttributes": {
+            "Id": recipe_name,
+            "recipe_id": recipe["id"],
+            "vegetarian": recipe.get("vegetarian", False),
+            "vegan": recipe.get("vegan", False),
+            "glutenFree": recipe.get("glutenFree", False),
+            "dairyFree": recipe.get("dairyFree", False),
+            "healthScore": recipe.get("healthScore", 0),
+            "readyInMinutes": recipe.get("readyInMinutes", 0),
+            "Calories": get_nutrient_value(recipe, "Calories"),
+            "Fat": get_nutrient_value(recipe, "Fat"),
+            "Carbohydrates": get_nutrient_value(recipe, "Carbohydrates"),
+            "Cholesterol": get_nutrient_value(recipe, "Cholesterol"),
+            "Protein": get_nutrient_value(recipe, "Protein"),
+            "Glycemic Index": get_property_value(recipe, "Glycemic Index"),
+            "ingredients": [
                 f"{ingredient['name']} ({ingredient['amount']} {ingredient['unit']})"
                 for ingredient in recipe.get("nutrition", {}).get("ingredients", [])
-            ),
-            "analyzedInstructions": " ".join(
-                step["step"] for instruction in recipe.get("analyzedInstructions", [])
-                for step in instruction.get("steps", [])
-            ), 
-			"percentProtein": recipe.get('nutrition').get("caloricBreakdown").get("percentProtein", 0),
-			"percentFat": recipe.get('nutrition').get("caloricBreakdown").get("percentFat", 0),
-			"percentCarbs": recipe.get('nutrition').get("caloricBreakdown").get("percentCarbs", 0)
-
+            ] or ["Not available"],
+            "cuisines": recipe.get("cuisines", []) or ["Not available"],
+            "dishTypes": recipe.get("dishTypes", []) or ["Not available"],
+            "diets": recipe.get("diets", []) or ["Not available"]
         }
-        
-        # Add nutritional elements as separate columns
-        for nutrient in recipe.get("nutrition", {}).get("nutrients", []):
-            flattened_recipe[f"{nutrient['name']}"] = nutrient.get("amount")
-        
-		# Add nutritional elements as separate columns
-        for property_ in recipe.get("nutrition", {}).get("properties", []):
-            flattened_recipe[f"{property_['name']}"] = property_.get("amount")
-        
-        recipes.append(flattened_recipe)
+    }
+
+    # Write metadata to JSON
+    with open(metadata_file, "w") as metafile:
+        json.dump(metadata, metafile, indent=4)
+
+    # print(f"Recipe saved: {recipe_file}")
+    # print(f"Metadata saved: {metadata_file}")
+
+def get_nutrient_value(recipe, nutrient_name):
+    """Retrieve a specific nutrient's value from the recipe or return '0'."""
+    nutrients = recipe.get("nutrition", {}).get("nutrients", [])
+    for nutrient in nutrients:
+        if nutrient.get("name") == nutrient_name:
+            return nutrient.get('amount')
+    return 0
+
+def get_property_value(recipe, property_name):
+    """Retrieve a property value from the recipe or return 'Not available'."""
+    properties = recipe.get("nutrition", {}).get("properties", [])
+    for prop in properties:
+        if prop.get("name") == property_name:
+            return prop.get("amount", "0")
+    return 0
+
+def process_recipes_to_individual_csvs(api_response, output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    added_count = 0  # Counter for newly added recipes
     
-    return recipes
+    for recipe in api_response["results"]:
+        recipe_name = sanitize_filename(recipe.get("title", "Unknown_Recipe"))
+        recipe_file = os.path.join(output_dir, f"{recipe_name}.csv")
+        metadata_file = os.path.join(output_dir, f"{recipe_name}.csv.metadata.json")
+        
+        # Skip if recipe or metadata already exists
+        if os.path.exists(recipe_file) or os.path.exists(metadata_file):
+            # print(f"Recipe '{recipe_name}' already exists. Skipping...")
+            continue
+        
+        # Save recipe and metadata
+        save_recipe_and_metadata(recipe, output_dir)
+        added_count += 1  # Increment the count of added recipes
+    
+    total_recipes_after = len([f for f in os.listdir(output_dir) if f.endswith(".csv")])  # Count recipes after
+    print(f"Added {added_count} recipes to folder, total recipes {total_recipes_after}")
 
-# Example function to process API response and save to CSV
-def append_recipes_to_csv(api_response, output_file=None):
-	new_recipes = flatten_recipe_data(api_response)
-	new_df = pd.DataFrame(new_recipes)
+# Function to sanitize file names
+def sanitize_filename(title):
+    return re.sub(r'[\/:*?"<>|\\]', '_', title).replace(" ", "_")
 
-	if os.path.exists(output_file):
-		existing_df = pd.read_csv(output_file)
-		existing_ids = set(existing_df['id'])
-		new_df = new_df[~new_df['id'].isin(existing_ids)]
-		combined_df = pd.concat([existing_df, new_df], ignore_index=True)
-	else:
-		combined_df = new_df
-
-	# Save the combined DataFrame to the CSV
-	combined_df.to_csv(output_file, index=False)
-	print(f"Updated CSV with {len(new_df)} new recipes. Total recipes: {len(combined_df)}.")
-
-
-for _ in range(50):
+for _ in range(10):
 	time.sleep(2)
 	response = requests.request("GET", url, headers=headers, params=params)
 	data = json.loads(response.text)
-	append_recipes_to_csv(data, "all_recipes.csv")
+	process_recipes_to_individual_csvs(data, "all_recipes")
