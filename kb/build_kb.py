@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 current_time = time.time()
 
 # Format the timestamp as a string
-timestamp_str = time.strftime("%Y%m%d%H%M%S", time.localtime(current_time))[-7:]
+timestamp_str = time.strftime("%Y%m%d%H%M%S", time.localtime(current_time))[-8:]
 # Create the suffix using the timestamp
 suffix = f"{timestamp_str}"
 knowledge_base_name_standard = 'csv-metadata-kb'
@@ -34,6 +34,9 @@ knowledge_base_name_hierarchical = 'hierarchical-kb'
 knowledge_base_description = "Knowledge Base csv metadata customization."
 bucket_name = f'{knowledge_base_name_standard}-{suffix}'
 foundation_model = "anthropic.claude-3-sonnet-20240229-v1:0"
+data_path = "all_recipes"
+print("========================================================================================")
+print(suffix, knowledge_base_name_standard, bucket_name)
 
 knowledge_base_standard = BedrockKnowledgeBase(
     kb_name=f'{knowledge_base_name_standard}-{suffix}',
@@ -43,18 +46,9 @@ knowledge_base_standard = BedrockKnowledgeBase(
     suffix = suffix
 )
 
+print("========================================================================================")
+knowledge_base_standard.upload_directory(data_path)
 
-def upload_directory(path, bucket_name):
-        for root,dirs,files in os.walk(path):
-            for file in files:
-                file_to_upload = os.path.join(root,file)
-                print(f"uploading file {file_to_upload} to {bucket_name}")
-                s3_client.upload_file(file_to_upload,bucket_name,file)
-
-upload_directory("csv_data", bucket_name)
-
-# ensure that the kb is available
-time.sleep(30)
 # sync knowledge base
 knowledge_base_standard.start_ingestion_job()
 kb_id_standard = knowledge_base_standard.get_knowledge_base_id()
@@ -63,7 +57,7 @@ query = "any salads please"
 one_group_filter= {
     "greaterThan": {
         "key": "healthScore",
-        "value": 60
+        "value": 50
     }
 }
 response = bedrock_agent_runtime_client.retrieve_and_generate(
@@ -98,3 +92,25 @@ def citations_rag_print(response_ret):
 
 citations_rag_print(response_standard)
 
+
+response = bedrock_agent_runtime_client.retrieve(
+    knowledgeBaseId=kb_id_standard, 
+    retrievalQuery={
+         "text": query
+    }, 
+    retrievalConfiguration={
+        "vectorSearchConfiguration": {
+            "numberOfResults": 5, 
+            "filter": one_group_filter
+        }
+    }
+)
+
+objects = s3_client.list_objects(Bucket=bucket_name)  
+if 'Contents' in objects:
+    for obj in objects['Contents']:
+        s3_client.delete_object(Bucket=bucket_name, Key=obj['Key']) 
+s3_client.delete_bucket(Bucket=bucket_name)
+
+print("===============================Knowledge base==============================")
+knowledge_base_standard.delete_kb(delete_s3_bucket=True, delete_iam_roles_and_policies=True)
