@@ -9,6 +9,7 @@ import zipfile
 from io import BytesIO
 import warnings
 warnings.filterwarnings('ignore')
+import os
 
 valid_embedding_models = ["cohere.embed-multilingual-v3", 
                           "cohere.embed-english-v3", 
@@ -1025,3 +1026,11 @@ class BedrockKnowledgeBase:
             print(f"======== Lambda function {self.lambda_function_name} deleted =========")
         except Exception as e:
             print(e)
+
+
+    def upload_directory(self, path):
+        for root,dirs,files in os.walk(path):
+            for file in files:
+                file_to_upload = os.path.join(root,file)
+                print(f"uploading file {file_to_upload} to {self.bucket_name}")
+                self.s3_client.upload_file(file_to_upload,self.bucket_name,file)
