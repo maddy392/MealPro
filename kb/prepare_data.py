@@ -10,27 +10,6 @@ import re
 # os.environ['AWS_PROFILE'] = 'mealPro'
 # os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
-session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
-ssm = session.client('ssm')
-parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
-
-response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
-api_key = response['Parameter']['Value']
-
-# Use the api_key in your function logic
-url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch"
-
-params = {}
-params['query'] = ""
-params['instructionsRequired'] = True
-params['addRecipeInformation'] = True
-params['addRecipeNutrition'] = True
-params['number'] = 10
-params["sort"] = "random"
-headers = {
-'X-RapidAPI-Key': api_key
-}
-
 def save_recipe_and_metadata(recipe, output_dir):
     # Prepare clean file name for the recipe
     recipe_name = sanitize_filename(recipe.get("title", "Unknown_Recipe"))
@@ -38,18 +17,21 @@ def save_recipe_and_metadata(recipe, output_dir):
     metadata_file = os.path.join(output_dir, f"{recipe_name}.csv.metadata.json")
 
     # Prepare recipe file with two columns: title and analyzedInstructions
-    analyzed_instructions = " ".join(
-        step["step"] for instruction in recipe.get("analyzedInstructions", [])
-        for step in instruction.get("steps", [])
-    )
-    recipe_data = pd.DataFrame([{"title": recipe.get("title", "Not available"), 
-                                 "analyzedInstructions": analyzed_instructions}])
+    # analyzed_instructions = " ".join(
+    #     step["step"] for instruction in recipe.get("analyzedInstructions", [])
+    #     for step in instruction.get("steps", [])
+    # )
+    recipe_data = pd.DataFrame([{"title": recipe.get("title", "Not available")}])
+    # "analyzedInstructions": analyzed_instructions
     recipe_data.to_csv(recipe_file, index=False, header=True)
 
     # Prepare metadata attributes
     metadata = {
         "metadataAttributes": {
             "Id": recipe_name,
+            "title": recipe.get("title", "Not available"),
+            "image": recipe.get("image", "Not available"),
+            "imageType": recipe.get("imageType", "Not available"),
             "recipe_id": recipe["id"],
             "vegetarian": recipe.get("vegetarian", False),
             "vegan": recipe.get("vegan", False),
@@ -123,8 +105,52 @@ def process_recipes_to_individual_csvs(api_response, output_dir):
 def sanitize_filename(title):
     return re.sub(r'[\/:*?"<>|\\]', '_', title).replace(" ", "_")
 
-for _ in range(10):
-	time.sleep(2)
-	response = requests.request("GET", url, headers=headers, params=params)
-	data = json.loads(response.text)
-	process_recipes_to_individual_csvs(data, "all_recipes")
+# for _ in range(10):
+# 	time.sleep(2)
+# 	response = requests.request("GET", url, headers=headers, params=params)
+# 	data = json.loads(response.text)
+# 	process_recipes_to_individual_csvs(data, "all_recipes")
+
+session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
+ssm = session.client('ssm')
+parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
+
+response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
+api_key = response['Parameter']['Value']
+
+total_results = 1000
+batch_size = 100
+
+# Use the api_key in your function logic
+url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch"
+params = {}
+params['query'] = ""
+params['instructionsRequired'] = True
+params['addRecipeInformation'] = True
+params['addRecipeNutrition'] = True
+params['number'] = batch_size
+params["sort"] = "popularity"
+headers = {
+'X-RapidAPI-Key': api_key
+}
+
+offset = 0
+while offset < total_results:
+    print(f"Fetching recipes {offset + 1} to {offset + batch_size}...")
+
+    params['offset'] = offset
+    response = requests.request("GET", url, headers=headers, params=params)
+
+    # Parse the response JSON
+    if response.status_code == 200:
+        data = json.loads(response.text)
+        process_recipes_to_individual_csvs(data, "all_recipes")
+    else:
+        print(f"Failed to fetch data: {response.status_code} - {response.text}")
+        break  # Exit the loop if there's an error in the API response
+
+    offset += batch_size
+    # print(f"Processed {offset} recipes")
+    time.sleep(2)
+
+print("All recipes have been fetched and saved.")
