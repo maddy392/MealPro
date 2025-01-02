@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 current_time = time.time()
 
 # Format the timestamp as a string
-timestamp_str = time.strftime("%Y%m%d%H%M%S", time.localtime(current_time))[-8:]
+timestamp_str = time.strftime("%Y%m%d%H%M", time.localtime(current_time))[2:]
 # Create the suffix using the timestamp
 suffix = f"{timestamp_str}"
 knowledge_base_name_standard = 'csv-metadata-kb'
@@ -47,50 +47,37 @@ knowledge_base_standard = BedrockKnowledgeBase(
 )
 
 print("========================================================================================")
-knowledge_base_standard.upload_directory(data_path)
+# knowledge_base_standard.upload_directory(data_path)
+# use aws s3 sync instead
+# aws s3 sync all_recipes/ s3://<bucket-name>/ --profile mealPro  --dryrun
 
 # sync knowledge base
 knowledge_base_standard.start_ingestion_job()
 kb_id_standard = knowledge_base_standard.get_knowledge_base_id()
 
-query = "any salads please"
-one_group_filter= {
-    "greaterThan": {
-        "key": "healthScore",
-        "value": 50
-    }
-}
-response = bedrock_agent_runtime_client.retrieve_and_generate(
-    input={
-        "text": query
-    },
-    retrieveAndGenerateConfiguration={
-        "type": "KNOWLEDGE_BASE",
-        "knowledgeBaseConfiguration": {
-            'knowledgeBaseId': kb_id_standard,
-            "modelArn": "arn:aws:bedrock:{}::foundation-model/{}".format(region, foundation_model),
-            "retrievalConfiguration": {
-                "vectorSearchConfiguration": {
-                    "numberOfResults":5, 
-                    "filter": one_group_filter
-                } 
+query = "kale salad"
+one_group_filter = {
+    "andAll": [
+        {
+            "listContains": {
+                "key": "dishTypes",
+                "value": "salad"
             }
-        }
-    }
-)
-
-pprint.pp(response['output']['text'])
-
-response_standard = response['citations'][0]['retrievedReferences']
-print("# of citations or chunks used to generate the response: ", len(response_standard))
-def citations_rag_print(response_ret):
-#structure 'retrievalResults': list of contents. Each list has content, location, score, metadata
-    for num,chunk in enumerate(response_ret,1):
-        print(f'Chunk {num}: ',chunk['content']['text'],end='\n'*2)
-        print(f'Chunk {num} Location: ',chunk['location'],end='\n'*2)
-        print(f'Chunk {num} Metadata: ',chunk['metadata'],end='\n'*2)
-
-citations_rag_print(response_standard)
+        },
+        {
+            "stringContains": {
+                "key": "ingredients",
+                "value": "kale"
+            }
+        },
+        # {
+        #     "equals": {
+        #         "key": "vegan",
+        #         "value": True
+        #     }
+        # }
+    ]
+}
 
 
 response = bedrock_agent_runtime_client.retrieve(
@@ -101,10 +88,27 @@ response = bedrock_agent_runtime_client.retrieve(
     retrievalConfiguration={
         "vectorSearchConfiguration": {
             "numberOfResults": 5, 
-            "filter": one_group_filter
+            "filter": one_group_filter, 
+            # "implicitFilterConfiguration": {
+            #     "metadataAttributes": [
+            #         {
+            #             "description": "The ingredients that the recipe is made of. E.g. kale, cabbage etc.", 
+            #             "key": "ingredients", 
+            #             "type": "STRING_LIST"
+            #         }
+            #     ], 
+            #     "modelArn": "anthropic.claude-3-5-sonnet-20240620-v1:0"
+            # }
         }
     }
 )
+
+for num, retreivedDoc in enumerate(response["retrievalResults"], 1):
+    print(f'Chunk {num}: ',retreivedDoc['content']['text'],end='\n'*2)
+    print(f'Chunk {num} Ingredients: ',retreivedDoc['metadata']["ingredients"],end='\n'*2)
+    print(f'Chunk {num} dishtypes: ',retreivedDoc['metadata']["dishTypes"],end='\n'*2)
+    print(f'Chunk {num} Score: ',retreivedDoc['score'],end='\n'*2)
+
 
 objects = s3_client.list_objects(Bucket=bucket_name)  
 if 'Contents' in objects:
@@ -114,3 +118,36 @@ s3_client.delete_bucket(Bucket=bucket_name)
 
 print("===============================Knowledge base==============================")
 knowledge_base_standard.delete_kb(delete_s3_bucket=True, delete_iam_roles_and_policies=True)
+
+
+# response = bedrock_agent_runtime_client.retrieve_and_generate(
+#     input={
+#         "text": query
+#     },
+#     retrieveAndGenerateConfiguration={
+#         "type": "KNOWLEDGE_BASE",
+#         "knowledgeBaseConfiguration": {
+#             'knowledgeBaseId': kb_id_standard,
+#             "modelArn": "arn:aws:bedrock:{}::foundation-model/{}".format(region, foundation_model),
+#             "retrievalConfiguration": {
+#                 "vectorSearchConfiguration": {
+#                     "numberOfResults":5, 
+#                     "filter": one_group_filter
+#                 } 
+#             }
+#         }
+#     }
+# )
+
+# pprint.pp(response['output']['text'])
+
+# response_standard = response['citations'][0]['retrievedReferences']
+# print("# of citations or chunks used to generate the response: ", len(response_standard))
+# def citations_rag_print(response_ret):
+# #structure 'retrievalResults': list of contents. Each list has content, location, score, metadata
+#     for num,chunk in enumerate(response_ret,1):
+#         print(f'Chunk {num}: ',chunk['content']['text'],end='\n'*2)
+#         print(f'Chunk {num} Location: ',chunk['location'],end='\n'*2)
+#         print(f'Chunk {num} Metadata: ',chunk['metadata'],end='\n'*2)
+
+# citations_rag_print(response_standard)

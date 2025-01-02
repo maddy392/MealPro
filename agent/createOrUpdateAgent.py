@@ -156,3 +156,11 @@ if wait_for_agent_preparation(agent_id):
     # print(f"Agent version created: {agent_version}")
 else:
     print("Failed to prepare agent. Cannot create version.")
+
+
+response = bedrock_agent_client.associate_agent_knowledge_base(
+	agentId="TKAFFO7AR2", 
+	agentVersion="DRAFT", 
+	description="Use this knowledge base query for recipes.", 
+	knowledgeBaseId='CBMFQH60JT'
+)

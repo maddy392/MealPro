@@ -6,23 +6,33 @@ import pandas as pd
 import time
 import re
 
-# Set AWS profile and region
-# os.environ['AWS_PROFILE'] = 'mealPro'
-# os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+# initiate session, secret service manager client and fixed parameter name where spoonacular key is saved
+session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
+ssm = session.client('ssm')
+parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
+
+# fetch api key
+def fetch_api_key():
+    response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
+    return response['Parameter']['Value']
+
+api_key = fetch_api_key()
+
+# set up URL to call spoonacular api
+url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch"
+headers = {
+'X-RapidAPI-Key': api_key
+}
 
 def save_recipe_and_metadata(recipe, output_dir):
+
     # Prepare clean file name for the recipe
     recipe_name = sanitize_filename(recipe.get("title", "Unknown_Recipe"))
     recipe_file = os.path.join(output_dir, f"{recipe_name}.csv")
     metadata_file = os.path.join(output_dir, f"{recipe_name}.csv.metadata.json")
 
-    # Prepare recipe file with two columns: title and analyzedInstructions
-    # analyzed_instructions = " ".join(
-    #     step["step"] for instruction in recipe.get("analyzedInstructions", [])
-    #     for step in instruction.get("steps", [])
-    # )
+    # Prepare recipe file with one columns: title
     recipe_data = pd.DataFrame([{"title": recipe.get("title", "Not available")}])
-    # "analyzedInstructions": analyzed_instructions
     recipe_data.to_csv(recipe_file, index=False, header=True)
 
     # Prepare metadata attributes
@@ -103,54 +113,72 @@ def process_recipes_to_individual_csvs(api_response, output_dir):
 
 # Function to sanitize file names
 def sanitize_filename(title):
-    return re.sub(r'[\/:*?"<>|\\]', '_', title).replace(" ", "_")
+    return re.sub(r'[\/:*?"<>|\\()$,]', '_', title).replace(" ", "_")
 
-# for _ in range(10):
-# 	time.sleep(2)
-# 	response = requests.request("GET", url, headers=headers, params=params)
-# 	data = json.loads(response.text)
-# 	process_recipes_to_individual_csvs(data, "all_recipes")
 
-session = boto3.session.Session(profile_name="mealPro", region_name="us-east-1")
-ssm = session.client('ssm')
-parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
+def fetch_and_process_recipes(total_results, batch_size):
+    """
+    Fetch and process recipes from the Spoonacular API in batches, handling offset limits and switching sort.
 
-response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
-api_key = response['Parameter']['Value']
+    Args:
+        total_results (int): Total number of recipes to fetch.
+        batch_size (int): Number of recipes to fetch per batch.
+    """
+    params = {
+        'query': "",
+        'instructionsRequired': True,
+        'addRecipeInformation': True,
+        'addRecipeNutrition': True,
+        'number': batch_size,
+    }
 
-total_results = 1000
-batch_size = 100
+    # Start fetching recipes
+    offset = 0
+    output_dir = "all_recipes"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-# Use the api_key in your function logic
-url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch"
-params = {}
-params['query'] = ""
-params['instructionsRequired'] = True
-params['addRecipeInformation'] = True
-params['addRecipeNutrition'] = True
-params['number'] = batch_size
-params["sort"] = "popularity"
-headers = {
-'X-RapidAPI-Key': api_key
-}
+    saved_recipes = len([f for f in os.listdir(output_dir) if f.endswith(".csv")])
+    sorting_phase = "popularity"
 
-offset = 0
-while offset < total_results:
-    print(f"Fetching recipes {offset + 1} to {offset + batch_size}...")
+    while saved_recipes < total_results:
+        if sorting_phase == "popularity":
+            params['sort'] = "popularity"
+            params['offset'] = offset
+            print(f"Fetching popular recipes {offset + 1} to {offset + batch_size}...")
+        else:
+            params['sort'] = "random"
+            if 'offset' in params:
+                del params['offset']
+            print(f"Fetching random recipes...")
 
-    params['offset'] = offset
-    response = requests.request("GET", url, headers=headers, params=params)
+        # Make API request
+        response = requests.request("GET", url, headers=headers, params=params)
 
-    # Parse the response JSON
-    if response.status_code == 200:
-        data = json.loads(response.text)
-        process_recipes_to_individual_csvs(data, "all_recipes")
-    else:
-        print(f"Failed to fetch data: {response.status_code} - {response.text}")
-        break  # Exit the loop if there's an error in the API response
+        if response.status_code == 200:
+            data = json.loads(response.text)
+            process_recipes_to_individual_csvs(data, output_dir)
+            # Update the saved recipe count based on files in the folder
+            saved_recipes = len([f for f in os.listdir(output_dir) if f.endswith(".csv")])
+        else:
+            print(f"Failed to fetch data: {response.status_code} - {response.text}")
+            break  # Exit the loop if there's an error in the API response
 
-    offset += batch_size
-    # print(f"Processed {offset} recipes")
-    time.sleep(2)
+        # Adjust offset for the popularity phase
+        if sorting_phase == "popularity":
+            offset += batch_size
+            if offset >= 900 or saved_recipes >= 1000:
+                print("Switching to random sorting...")
+                sorting_phase = "random"
 
-print("All recipes have been fetched and saved.")
+        time.sleep(2)  # Avoid hitting API rate limits
+
+    print(f"All recipes have been fetched and saved. Total saved: {saved_recipes}")
+
+
+
+if __name__ == "__main__":
+    total_results = 10000  # Total number of recipes to fetch
+    batch_size = 100  # Number of recipes to fetch per batch
+
+    fetch_and_process_recipes(total_results, batch_size)
