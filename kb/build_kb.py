@@ -55,33 +55,12 @@ print("=========================================================================
 knowledge_base_standard.start_ingestion_job()
 kb_id_standard = knowledge_base_standard.get_knowledge_base_id()
 
-query = "kale salad"
-one_group_filter = {
-    "andAll": [
-        {
-            "listContains": {
-                "key": "dishTypes",
-                "value": "salad"
-            }
-        },
-        {
-            "stringContains": {
-                "key": "ingredients",
-                "value": "kale"
-            }
-        },
-        # {
-        #     "equals": {
-        #         "key": "vegan",
-        #         "value": True
-        #     }
-        # }
-    ]
-}
+query = "recipes"
+one_group_filter = {'andAll': [{'listContains': {'key': 'dishTypes', 'value': 'salad'}}, {'listContains': {'key': 'cuisines', 'value': 'Southern'}}]}
 
 
 response = bedrock_agent_runtime_client.retrieve(
-    knowledgeBaseId=kb_id_standard, 
+    knowledgeBaseId="CBMFQH60JT", 
     retrievalQuery={
          "text": query
     }, 

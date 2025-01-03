@@ -158,9 +158,9 @@ else:
     print("Failed to prepare agent. Cannot create version.")
 
 
-response = bedrock_agent_client.associate_agent_knowledge_base(
-	agentId="TKAFFO7AR2", 
-	agentVersion="DRAFT", 
-	description="Use this knowledge base query for recipes.", 
-	knowledgeBaseId='CBMFQH60JT'
-)
+# response = bedrock_agent_client.associate_agent_knowledge_base(
+# 	agentId="TKAFFO7AR2", 
+# 	agentVersion="DRAFT", 
+# 	description="Use this knowledge base query for recipes.", 
+# 	knowledgeBaseId='CBMFQH60JT'
+# )
