@@ -32,7 +32,14 @@ def save_recipe_and_metadata(recipe, output_dir):
     metadata_file = os.path.join(output_dir, f"{recipe_name}.csv.metadata.json")
 
     # Prepare recipe file with one columns: title
-    recipe_data = pd.DataFrame([{"title": recipe.get("title", "Not available")}])
+    # recipe_data = pd.DataFrame([{"title": recipe.get("title", "Not available")}])
+    recipe_data = pd.DataFrame([{
+        "title": recipe.get("title", "Not available"),
+        "ingredients": ", ".join(
+            sorted(
+                [f"{ingredient['name']} ({ingredient['amount']} {ingredient['unit']})" 
+                                for ingredient in recipe.get("nutrition", {}).get("ingredients", [])] or ["Not available"]))
+    }])
     recipe_data.to_csv(recipe_file, index=False, header=True)
 
     # Prepare metadata attributes
@@ -134,7 +141,7 @@ def fetch_and_process_recipes(total_results, batch_size):
 
     # Start fetching recipes
     offset = 0
-    output_dir = "all_recipes"
+    output_dir = "all_recipes_with_ingredients"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
