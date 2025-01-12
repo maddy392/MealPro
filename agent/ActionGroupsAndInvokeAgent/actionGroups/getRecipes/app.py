@@ -1,68 +1,165 @@
-import json
 import boto3
-import requests
-
+import json
 
 def lambda_handler(event, context):
-    ssm = boto3.client('ssm')
-    parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
-    
-    response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
-    api_key = response['Parameter']['Value']
-    # print(api_key)
 
-    agent = event['agent']
-    actionGroup = event['actionGroup']
-    function = event['function']
-    parameters = event.get('parameters', [])
-    
-    # Use the api_key in your function logic
-    url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch"
+    print(event)
 
-    params = {item["name"]:item["value"] for item in parameters}
-    params['instructionsRequired'] = True
-    params['addRecipeInformation'] = True
-    params['number'] = 3
-    params["sort"] = "popularity"
-    headers = {
-    'X-RapidAPI-Key': api_key
-    }
-    required_keys = ["id", "title", "image", "imageType", "vegetarian", "vegan", "glutenFree", "dairyFree",
-    "healthScore", "readyInMinutes"]
+    # Extract parameters from the event
+    parameters = {param["name"]: param["value"] for param in event.get('parameters', [])}
+    query = parameters.get("query", "recipes")
+    dishType = parameters.get("dishType", None)
+    ingredients = parameters.get("ingredients", [])
+    cuisine = parameters.get("cuisine", None)
 
-    response = requests.request("GET", url, headers=headers, params=params)
+    # Normalize the ingredients input
+    if ingredients:
+        # If ingredients is a comma-separated string, split it into a list
+        if isinstance(ingredients, str):
+            ingredients = ingredients.split(",")
+        # If it's a single string (no commas), wrap it in a list
+        elif isinstance(ingredients, list):
+            pass  # Already a list, no action needed
+        else:
+            ingredients = [ingredients]  # Wrap single string or any other type in a list
 
-    recipe_results = response.json()['results']
-    modified_recipes = [{**{k if k != 'id' else 'recipeId': v for k, v in recipe.items() if k in required_keys}} for recipe in recipe_results]
+    # Build individual conditions
+    conditions = []
 
-
-    return {
-    "messageVersion": "1.0",
-    "response": {
-        "actionGroup": actionGroup,
-        "function": function,
-        "functionResponse": {
-            "responseBody": {
-                "TEXT": { 
-                    "body": json.dumps(modified_recipes)
-                }
+    if dishType:
+        conditions.append({
+            "listContains": {
+                "key": "dishTypes",
+                "value": dishType
             }
+        })
+
+    if ingredients:
+        for ingredient in ingredients:
+            conditions.append({
+                "stringContains": {
+                    "key": "ingredients",
+                    "value": ingredient.strip()
+                }
+            })
+
+    if cuisine:
+        conditions.append({
+            "listContains": {
+                "key": "cuisines",
+                "value": cuisine
+            }
+        })
+
+    # Build the final filter based on the number of conditions
+    if len(conditions) >= 2:
+        one_group_filter = {"andAll": conditions}
+    elif len(conditions) == 1:
+        # If there's only one condition, use it directly
+        one_group_filter = conditions[0]
+    else:
+        # Handle the case where there are no conditions (e.g., default filter)
+        one_group_filter = {}
+
+    print(one_group_filter)
+
+    # Build the final retrieval configuration
+    retrieval_configuration = {
+        "vectorSearchConfiguration": {
+            "numberOfResults": 3
         }
-    },
-    "sessionAttributes": {
-        "string": "string",
-    },
-    "promptSessionAttributes": {
-        "string": "string"
-    },
-    "knowledgeBasesConfiguration": [
-        {
-            "knowledgeBaseId": "string",
-            "retrievalConfiguration": {
-                "vectorSearchConfiguration": {
-                    "numberOfResults": 5
+    }
+
+    if len(conditions) >= 2:
+        retrieval_configuration["vectorSearchConfiguration"]["filter"] = {"andAll": conditions}
+    elif len(conditions) == 1:
+        retrieval_configuration["vectorSearchConfiguration"]["filter"] = conditions[0]
+
+    # Initialize Bedrock client
+    bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime')
+
+    # Set knowledge base ID
+    kb_id_standard = "CBMFQH60JT"
+
+    # Attempt to make the API call
+    try:
+        response = bedrock_agent_runtime_client.retrieve(
+            knowledgeBaseId=kb_id_standard,
+            retrievalQuery={"text": query},
+            retrievalConfiguration=retrieval_configuration
+        )
+        # print(response["retrievalResults"])
+
+    except Exception as e:
+        # Handle API call failure
+        error_message = {
+            "error": str(e),
+            "message": "Failed to fetch retrieval results. Please check your input and configuration."
+        }
+        print(error_message)
+        return {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": event.get("actionGroup", "defaultActionGroup"),
+                "function": event.get("function", "defaultFunction"),
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {
+                            "body": json.dumps(error_message)
+                        }
+                    }
+                }
+            },
+            "sessionAttributes": {},
+            "promptSessionAttributes": {},
+            "knowledgeBasesConfiguration": []
+        }
+    # print(response["retrievalResults"])
+
+    # Define required keys
+    required_keys = ["recipe_id", "title", "image", "imageType", "vegetarian", "vegan", "glutenFree", "dairyFree",
+                     "healthScore", "readyInMinutes"]
+
+    # Process the retrieved documents and format as per required_keys
+    modified_recipes = []
+    for retrieved_doc in response.get("retrievalResults", []):
+        metadata = retrieved_doc["metadata"]
+        recipe_data = {
+        "recipeId" if k == "recipe_id" else k: int(metadata.get(k)) if k == "recipe_id" else metadata.get(k)
+        for k in required_keys
+        }       
+        modified_recipes.append(recipe_data)
+
+    print(modified_recipes)
+
+    # Return the response
+    return {
+        "messageVersion": "1.0",
+        "response": {
+            "actionGroup": event['actionGroup'],
+            "function": event['function'],
+            "functionResponse": {
+                "responseBody": {
+                    "TEXT": {
+                        "body": json.dumps(modified_recipes, indent=4)
+                    }
                 }
             }
         },
-    ]
-}
+        "sessionAttributes": {
+            "string": "string"
+        },
+        "promptSessionAttributes": {
+            "string": "string"
+        },
+        "knowledgeBasesConfiguration": [
+            {
+                "knowledgeBaseId": "string",
+                "retrievalConfiguration": {
+                    "vectorSearchConfiguration": {
+                        "numberOfResults": 5
+                    }
+                }
+            }
+        ]
+    }

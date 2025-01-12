@@ -17,7 +17,7 @@ response = bedrock_agent_runtime_client.invoke_agent(
     agentId='TKAFFO7AR2',
     agentAliasId='TSTALIASID',
     sessionId='TestSession',
-    inputText='Any korean recipes?', 
+    inputText='"Give me more similar recipes to this recipe. Recipe ID: 1096040', 
 	enableTrace=True
 )
 
@@ -40,26 +40,26 @@ for event in event_stream:
 
 
 # Invoke the agent
-response = bedrock_agent_runtime_client.invoke_agent(
-    agentId='TKAFFO7AR2',
-    agentAliasId='TSTALIASID',
-    sessionId='TestSession',
-    inputText='recipes similar to recipeId: 644390', 
-	enableTrace=True
-)
+# response = bedrock_agent_runtime_client.invoke_agent(
+#     agentId='TKAFFO7AR2',
+#     agentAliasId='TSTALIASID',
+#     sessionId='TestSession',
+#     inputText='recipes similar to recipeId: 644390', 
+# 	enableTrace=True
+# )
 
-# Access the event stream in the response
-event_stream = response['completion']
+# # Access the event stream in the response
+# event_stream = response['completion']
 
-# Process each event in the event stream
-for event in event_stream:
-    print("Received event:", event)
+# # Process each event in the event stream
+# for event in event_stream:
+#     print("Received event:", event)
 
-    # Check if the event contains a chunk of data
-    if 'chunk' in event:
-        chunk_data = event['chunk']
-        print("Chunk data:", chunk_data)
+#     # Check if the event contains a chunk of data
+#     if 'chunk' in event:
+#         chunk_data = event['chunk']
+#         print("Chunk data:", chunk_data)
 
-    # Handle other specific events as needed (e.g., accessDeniedException)
-    if 'accessDeniedException' in event:
-        print("Access Denied:", event['accessDeniedException'])
+#     # Handle other specific events as needed (e.g., accessDeniedException)
+#     if 'accessDeniedException' in event:
+#         print("Access Denied:", event['accessDeniedException'])

@@ -12,9 +12,9 @@
 	"function": "string",
 	"parameters": [
 		{
-			"name": "recipeId",
-			"type": "integer",
-			"value": "1096040"
+			"name": "query",
+			"type": "string",
+			"value": "tiramisu"
 		}
 	],
 	"sessionAttributes": {

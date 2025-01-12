@@ -79,20 +79,35 @@ def create_or_update_agent_action_group(
 
 response = create_or_update_agent_action_group(
 	name="getRecipesActionGroup",
-	description="This Action Group fetches recipes based on user preferences. Convert user query into a crisp query and pass on as query as your main parameter. Cuisine and diet parameters are optional",
+	description="This Action Group fetches recipes based on user preferences. Convert user query into a crisp query and pass on as query as your main parameter.",
 	agent_id="TKAFFO7AR2",
 	agent_version="DRAFT",
 	function_arn="arn:aws:lambda:us-east-1:294090989896:function:agent-GetRecipesFunction-53W7zP0YIFTU",
 	function_schema={
 				"functions": [
 					{	
-						"description": "Fetch recipes based on user preferences.Use query parameter as your main input; ",
+						"description": "Fetch recipes based on user preferences. Parameters include query, ingredients, cuisine and dishType. For cuisine and dishType, stick to the options provided please",
 						"name": "getRecipes",
 						"parameters": {
 							"query": {
 								"description": "short and crisp natural language query from the user. e.g. If the user says 'I want to cook a chicken curry', the query is 'chicken curry'. if user asks for Jamaican recipes, set query as Jamaican recipes",
 								"type": "string",
-								"required": True
+								"required": False
+							}, 
+							"ingredients" : {
+								"description": "The ingredient list that the recipe the user has requested should contain. E.g. if the user asks for Kale Salad, ingredients is [\"kale\"]. Make sure this parameter is an array",
+								"type": "array",
+								"required": False
+							}, 
+							"cuisine": {
+        						"description": "The type of cuisine the user is requesting for. Stick to the following options please: [\"All\", \"Italian\", \"Mexican\", \"American\", \"Asian\", \"Chinese\", \"Japanese\", \"Indian\", \"Mediterranean\", \"French\", \"Greek\", \"Spanish\", \"Thai\", \"Korean\", \"Vietnamese\", \"Latin American\", \"British\", \"Caribbean\", \"Cajun\", \"German\", \"Irish\", \"African\", \"European\", \"Eastern European\", \"Southern\", \"Middle Eastern\", \"Nordic\", \"Jewish\"]",
+        						"type": "string",
+        						"required": False
+    						}, 
+							"dishType": {
+								"description": "The type of dish the user is requesting for. Stick to the following options please: [\"main course\", \"side dish\", \"dessert\", \"appetizer\", \"salad\", \"bread\", \"breakfast\", \"soup\", \"beverage\", \"sauce\", \"marinade\", \"fingerfood\", \"snack\", \"drink\"]",
+								"type": "string",
+								"required": False
 							}
 						}, 
 						"requireConfirmation": "DISABLED"
@@ -117,7 +132,7 @@ response = create_or_update_agent_action_group(
 						"parameters": {
 							"recipeId": {
 								"description": "The ID of the recipe for which you want to fetch similar recipes for",
-								"type": "string",
+								"type": "integer",
 								"required": True
 							}, 
 							"number": {

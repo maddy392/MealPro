@@ -4,99 +4,129 @@ import requests
 
 
 def lambda_handler(event, context):
-    ssm = boto3.client('ssm')
-    parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
+    # ssm = boto3.client('ssm')
+    # parameter_name = '/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY'
     
-    response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
-    api_key = response['Parameter']['Value']
+    # response = ssm.get_parameter(Name=parameter_name, WithDecryption=True)
+    # api_key = response['Parameter']['Value']
     # print(api_key)
+    bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime')
 
     agent = event['agent']
     actionGroup = event['actionGroup']
     function = event['function']
     parameters = event.get('parameters', [])
+    print(event)
 
     recipe_id = next((param["value"] for param in parameters if param["name"] == "recipeId"), None)
-    number = next((param["value"] for param in parameters if param["name"] == "number"), 3)  # Default to 3 if not provided
-    
-    # Use the api_key in your function logic
-    similar_recipes_url = f"https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/{recipe_id}/similar?number={number}"
+    if recipe_id is not None:
+        try:
+            recipe_id = int(recipe_id)  # Convert to integer
+        except ValueError:
+            raise ValueError(f"Invalid recipeId: {recipe_id}. It must be a numeric value.")
 
-    # params['instructionsRequired'] = True
-    # params['addRecipeInformation'] = True
-    # params['number'] = 3
-    # params["sort"] = "popularity"
-    headers = {
-    'X-RapidAPI-Key': api_key, 
-    "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
+    if not recipe_id:
+        return {
+            "messageVersion": "1.0",
+            "response": {
+                "actionGroup": event['actionGroup'],
+                "function": event['function'],
+                "functionResponse": {
+                    "responseBody": {
+                        "TEXT": {"body": "recipeId parameter is required."}
+                    }
+                }
+            }
+        }
+    
+    # Get original recipe by recipe_id
+    recipe_id_filter = {
+        "equals": {
+            "key": "recipe_id",
+            "value": recipe_id
+            }
+        }
+
+    response = bedrock_agent_runtime_client.retrieve(
+        knowledgeBaseId="VXTEJJNW5V",
+        retrievalQuery={"text": "recipe"},
+        retrievalConfiguration={
+            "vectorSearchConfiguration": {
+                "numberOfResults": 1,
+                "filter": recipe_id_filter
+            }
+        }
+    )
+    original_recipe = response['retrievalResults'][0]['metadata']
+    original_title = original_recipe['title']
+    original_ingredients = ", ".join(
+        sorted(original_recipe['ingredients'])
+    )
+    # print(original_recipe , original_title, original_ingredients)
+    # print(original_recipe["dishTypes"], original_recipe["cuisines"])
+
+    title_response = bedrock_agent_runtime_client.retrieve(
+        knowledgeBaseId="VXTEJJNW5V",
+        retrievalQuery={"text": original_title},
+        retrievalConfiguration={
+            "vectorSearchConfiguration": {
+                "numberOfResults": 2,
+                "overrideSearchType": "HYBRID", 
+                "filter": {
+                    "notEquals": {
+                        "key": "recipe_id",
+                        "value": recipe_id
+                    }
+                }
+            }
+        }
+    )
+    # print(title_response)
+
+    ingredients_response = bedrock_agent_runtime_client.retrieve(
+        knowledgeBaseId="VXTEJJNW5V",
+        retrievalQuery={"text": original_ingredients},
+        retrievalConfiguration={
+            "vectorSearchConfiguration": {
+                "numberOfResults": 2,
+                "overrideSearchType": "HYBRID", 
+                "filter": {
+                    "notEquals": {
+                        "key": "recipe_id",
+                        "value": recipe_id
+                    }
+                }
+            }
+        }
+    )
+    # print(ingredients_response)
+
+    # Combine and exclude the original recipe
+    retrieved_recipes = title_response['retrievalResults'] + ingredients_response['retrievalResults']
+
+    # Filter the detailed recipes to include only required keys
+   # Define required keys
+    required_keys = ["recipe_id", "title", "image", "imageType", "vegetarian", "vegan", "glutenFree", "dairyFree",
+                     "healthScore", "readyInMinutes", "cuisines", "dishTypes"]
+    # Process the retrieved documents and format as per required_keys
+    modified_recipes = []
+    for retrieved_doc in retrieved_recipes:
+        metadata = retrieved_doc["metadata"]
+        recipe_data = {
+        "recipeId" if k == "recipe_id" else k: int(metadata.get(k)) if k == "recipe_id" else metadata.get(k)
+        for k in required_keys
+        }       
+        modified_recipes.append(recipe_data)
+
+    return {
+        "messageVersion": "1.0",
+        "response": {
+            "actionGroup": actionGroup,
+            "function": function,
+            "functionResponse": {
+                "responseBody": {
+                    "TEXT": {"body": json.dumps(modified_recipes)}
+                }
+            }
+        }
     }
-    
-    try:
-        similar_recipes_response = requests.get(similar_recipes_url, headers=headers)
-        similar_recipes_response.raise_for_status()
-        similar_recipes = similar_recipes_response.json()
-
-        # Extract the IDs
-        recipe_ids = [str(recipe['id']) for recipe in similar_recipes]
-        if not recipe_ids:
-            return {
-                "messageVersion": "1.0",
-                "response": {
-                    "actionGroup": actionGroup,
-                    "function": function,
-                    "functionResponse": {
-                        "responseBody": {
-                            "TEXT": {
-                                "body": "No similar recipes found."
-                            }
-                        }
-                    }
-                }
-            }
-
-        # Fetch details of the similar recipes
-        info_url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/informationBulk"
-        querystring = {"ids": ",".join(recipe_ids)}
-        detailed_response = requests.get(info_url, headers=headers, params=querystring)
-        detailed_response.raise_for_status()
-        detailed_recipes = detailed_response.json()
-
-        # Filter the detailed recipes to include only required keys
-        required_keys = [
-            "id", "title", "image", "imageType", "vegetarian", "vegan", "glutenFree", "dairyFree",
-            "healthScore", "readyInMinutes"
-        ]
-        modified_recipes = [
-            {k: recipe[k] for k in required_keys if k in recipe}
-            for recipe in detailed_recipes
-        ]
-
-        return {
-            "messageVersion": "1.0",
-            "response": {
-                "actionGroup": actionGroup,
-                "function": function,
-                "functionResponse": {
-                    "responseBody": {
-                        "TEXT": {"body": json.dumps(modified_recipes)}
-                    }
-                }
-            }
-        }
-
-        
-    except requests.exceptions.RequestException as e:
-        return {
-            "messageVersion": "1.0",
-            "response": {
-                "actionGroup": actionGroup,
-                "function": function,
-                "functionResponse": {
-                    "responseBody": {
-                        "TEXT": {
-                            "body": f"Error fetching similar recipes: {str(e)}"
-                        }
-                    }
-                }
-            }
-        }

@@ -64,6 +64,10 @@ Resources:
             - ssm:GetParameter
            Resource:
             - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY
+         - Effect: Allow
+           Action:
+            - bedrock:Retrieve
+           Resource: 'arn:aws:bedrock:us-east-1:294090989896:knowledge-base/*'
 
   GetRecipesFunctionBedrockPermission:
     Type: AWS::Lambda::Permission
@@ -90,6 +94,10 @@ Resources:
             - ssm:GetParameter
            Resource:
             - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/amplify/mealpro/madpro-sandbox-6e21c0feec/SPOONACULAR_RAPIDAPI_KEY
+         - Effect: Allow
+           Action:
+            - bedrock:Retrieve
+           Resource: 'arn:aws:bedrock:us-east-1:294090989896:knowledge-base/*'
 
   GetSimilarRecipesFunctionBedrockPermission:
     Type: AWS::Lambda::Permission

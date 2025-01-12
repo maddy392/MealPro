@@ -31,3 +31,7 @@ agent/ActionGroupsAndInvokeAgent/.aws-sam/*
 agent/ActionGroupsAndInvokeAgent/README.md
 agent/ActionGroupsAndInvokeAgent/__init__.py
 agent/ActionGroupsAndInvokeAgent/tests/*
+
+kb/csv_data/*
+*.csv
+*.metadata.json
