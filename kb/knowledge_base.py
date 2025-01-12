@@ -205,7 +205,7 @@ class BedrockKnowledgeBase:
         # Package up the lambda function code
         s = BytesIO()
         z = zipfile.ZipFile(s, 'w')
-        z.write("lambda_function.py")
+        z.write("lambda_function_for_chunking.py")
         z.close()
         zip_content = s.getvalue()
 
@@ -216,7 +216,7 @@ class BedrockKnowledgeBase:
             Timeout=60,
             Role=lambda_iam_role['Role']['Arn'],
             Code={'ZipFile': zip_content},
-            Handler='lambda_function.lambda_handler'
+            Handler='lambda_function_for_chunking.lambda_handler'
         )
         return lambda_function
 

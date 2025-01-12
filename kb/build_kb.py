@@ -26,48 +26,54 @@ logger = logging.getLogger(__name__)
 current_time = time.time()
 
 # Format the timestamp as a string
-timestamp_str = time.strftime("%Y%m%d%H%M", time.localtime(current_time))[2:]
+timestamp_str = time.strftime("%Y%m%d%H%M", time.localtime(current_time))[4:]
 # Create the suffix using the timestamp
 suffix = f"{timestamp_str}"
-knowledge_base_name_standard = 'csv-metadata-kb'
-knowledge_base_name_hierarchical = 'hierarchical-kb'
-knowledge_base_description = "Knowledge Base csv metadata customization."
-bucket_name = f'{knowledge_base_name_standard}-{suffix}'
+knowledge_base_name_custom = 'custom-chunking-kb'
+knowledge_base_description = "Knowledge Base csv metadata customization with custom chunking for title and ingredients"
+lambda_function_name = f'{knowledge_base_name_custom}-lambda-{suffix}'
+bucket_name = f'{knowledge_base_name_custom}-{suffix}'
+intermediate_bucket_name = f'{knowledge_base_name_custom}-intermediate-{suffix}'
 foundation_model = "anthropic.claude-3-sonnet-20240229-v1:0"
 data_path = "all_recipes"
 print("========================================================================================")
-print(suffix, knowledge_base_name_standard, bucket_name)
+print(suffix, knowledge_base_name_custom, bucket_name)
 
-knowledge_base_standard = BedrockKnowledgeBase(
-    kb_name=f'{knowledge_base_name_standard}-{suffix}',
+knowledge_base_custom = BedrockKnowledgeBase(
+    kb_name=f'{knowledge_base_name_custom}-{suffix}',
     kb_description=knowledge_base_description,
     data_bucket_name=bucket_name, 
-    chunking_strategy = "FIXED_SIZE", 
-    suffix = suffix
+    lambda_function_name=lambda_function_name, 
+    intermediate_bucket_name=intermediate_bucket_name,
+    chunking_strategy = "CUSTOM", 
+    suffix = f'{suffix}-c'
 )
+
+# knowledge_base_standard.create_lambda()
 
 print("========================================================================================")
 # knowledge_base_standard.upload_directory(data_path)
 # use aws s3 sync instead
-# aws s3 sync all_recipes/ s3://<bucket-name>/ --profile mealPro  --dryrun
+# aws s3 sync all_recipes/ s3://custom-chunking-kb-01100015/ --profile mealPro  --dryrun
 
 # sync knowledge base
-knowledge_base_standard.start_ingestion_job()
-kb_id_standard = knowledge_base_standard.get_knowledge_base_id()
+knowledge_base_custom.start_ingestion_job()
+kb_id_custom = knowledge_base_custom.get_knowledge_base_id()
 
-query = "recipes"
-one_group_filter = {'andAll': [{'listContains': {'key': 'dishTypes', 'value': 'salad'}}, {'listContains': {'key': 'cuisines', 'value': 'Southern'}}]}
+query = "basmati rice (1.0 servings), cinnamon (0.25 sticks), cumin (0.13 teaspoon), ginger juice (0.13 teaspoon), ground chili (0.13 tablespoon), ground coriander (0.25 teaspoons), ground turmeric (0.38 teaspoons), oil (1.0 servings), onions (0.13 cup), pods cardamom (0.38 ), potatoes (0.06 pound), prawns (0.25 lbs), salt (1.0 servings), sugar (0.13 teaspoon), tomatoes (0.25 ), yogurt (0.5 ounces)"
+one_group_filter = {'andAll': [{'lessThan': {'key': 'healthScore', 'value': 30}}, {'equals': {'key': 'chunk_type', 'value': "ingredients"}}]}
 
 
 response = bedrock_agent_runtime_client.retrieve(
-    knowledgeBaseId="CBMFQH60JT", 
+    knowledgeBaseId=kb_id_custom, 
     retrievalQuery={
          "text": query
     }, 
     retrievalConfiguration={
         "vectorSearchConfiguration": {
             "numberOfResults": 5, 
-            "filter": one_group_filter, 
+            "overrideSearchType": "HYBRID"
+            # "filter": one_group_filter, 
             # "implicitFilterConfiguration": {
             #     "metadataAttributes": [
             #         {
@@ -84,8 +90,8 @@ response = bedrock_agent_runtime_client.retrieve(
 
 for num, retreivedDoc in enumerate(response["retrievalResults"], 1):
     print(f'Chunk {num}: ',retreivedDoc['content']['text'],end='\n'*2)
-    print(f'Chunk {num} Ingredients: ',retreivedDoc['metadata']["ingredients"],end='\n'*2)
-    print(f'Chunk {num} dishtypes: ',retreivedDoc['metadata']["dishTypes"],end='\n'*2)
+    print(f'Chunk {num} title: ',retreivedDoc['metadata']["title"],end='\n'*2)
+    print(f'Chunk {num} Ingredients: ',", ".join(sorted(retreivedDoc['metadata']["ingredients"])),end='\n'*2)
     print(f'Chunk {num} Score: ',retreivedDoc['score'],end='\n'*2)
 
 
@@ -96,7 +102,7 @@ if 'Contents' in objects:
 s3_client.delete_bucket(Bucket=bucket_name)
 
 print("===============================Knowledge base==============================")
-knowledge_base_standard.delete_kb(delete_s3_bucket=True, delete_iam_roles_and_policies=True)
+knowledge_base_custom.delete_kb(delete_s3_bucket=True, delete_iam_roles_and_policies=True)
 
 
 # response = bedrock_agent_runtime_client.retrieve_and_generate(

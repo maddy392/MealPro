@@ -23,11 +23,11 @@ def lambda_handler(event, context):
         else:
             ingredients = [ingredients]  # Wrap single string or any other type in a list
 
-    # Build the filter
-    one_group_filter = {"andAll": []}
+    # Build individual conditions
+    conditions = []
 
     if dishType:
-        one_group_filter["andAll"].append({
+        conditions.append({
             "listContains": {
                 "key": "dishTypes",
                 "value": dishType
@@ -36,22 +36,44 @@ def lambda_handler(event, context):
 
     if ingredients:
         for ingredient in ingredients:
-            one_group_filter["andAll"].append({
+            conditions.append({
                 "stringContains": {
                     "key": "ingredients",
-                    "value": ingredient
+                    "value": ingredient.strip()
                 }
             })
 
     if cuisine:
-        one_group_filter["andAll"].append({
+        conditions.append({
             "listContains": {
                 "key": "cuisines",
                 "value": cuisine
             }
         })
 
+    # Build the final filter based on the number of conditions
+    if len(conditions) >= 2:
+        one_group_filter = {"andAll": conditions}
+    elif len(conditions) == 1:
+        # If there's only one condition, use it directly
+        one_group_filter = conditions[0]
+    else:
+        # Handle the case where there are no conditions (e.g., default filter)
+        one_group_filter = {}
+
     print(one_group_filter)
+
+    # Build the final retrieval configuration
+    retrieval_configuration = {
+        "vectorSearchConfiguration": {
+            "numberOfResults": 3
+        }
+    }
+
+    if len(conditions) >= 2:
+        retrieval_configuration["vectorSearchConfiguration"]["filter"] = {"andAll": conditions}
+    elif len(conditions) == 1:
+        retrieval_configuration["vectorSearchConfiguration"]["filter"] = conditions[0]
 
     # Initialize Bedrock client
     bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime')
@@ -64,12 +86,7 @@ def lambda_handler(event, context):
         response = bedrock_agent_runtime_client.retrieve(
             knowledgeBaseId=kb_id_standard,
             retrievalQuery={"text": query},
-            retrievalConfiguration={
-                "vectorSearchConfiguration": {
-                    "numberOfResults": 5,
-                    "filter": one_group_filter
-                }
-            }
+            retrievalConfiguration=retrieval_configuration
         )
         # print(response["retrievalResults"])
 

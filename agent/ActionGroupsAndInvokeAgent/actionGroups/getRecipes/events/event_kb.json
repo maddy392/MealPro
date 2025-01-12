@@ -12,14 +12,9 @@
 	"function": "string",
 	"parameters": [
 		{
-			"name": "ingredients",
-			"type": "array",
-			"value": "chicken,cheese"
-		},
-		{
-			"name": "dishType",
+			"name": "query",
 			"type": "string",
-			"value": "salad"
+			"value": "tiramisu"
 		}
 	],
 	"sessionAttributes": {
