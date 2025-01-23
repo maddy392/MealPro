@@ -79,14 +79,14 @@ def create_or_update_agent_action_group(
 
 response = create_or_update_agent_action_group(
 	name="getRecipesActionGroup",
-	description="This Action Group fetches recipes based on user preferences. Convert user query into a crisp query and pass on as query as your main parameter.",
+	description="This Action Group fetches recipes based on user preferences. Use this action group even when user provides no preferences in which case call this action group with no parameters",
 	agent_id="TKAFFO7AR2",
 	agent_version="DRAFT",
 	function_arn="arn:aws:lambda:us-east-1:294090989896:function:agent-GetRecipesFunction-53W7zP0YIFTU",
 	function_schema={
 				"functions": [
 					{	
-						"description": "Fetch recipes based on user preferences. Parameters include query, ingredients, cuisine and dishType. For cuisine and dishType, stick to the options provided please",
+						"description": "Fetch recipes based on optinal user preferences. Parameters include query, ingredients, cuisine and dishType. For cuisine and dishType, stick to the options provided please. Leave all parameters blank if user has no preferences. If the user's preferences do not fit into cuisine, dishtype or ingredients, pass it on as query. e.g. is user asks for 'milkshakes', passing parameter 'query' as 'milkshake' is way better than passing 'dishtype' as 'drink'",
 						"name": "getRecipes",
 						"parameters": {
 							"query": {

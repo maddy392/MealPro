@@ -32,6 +32,7 @@ agent/ActionGroupsAndInvokeAgent/README.md
 agent/ActionGroupsAndInvokeAgent/__init__.py
 agent/ActionGroupsAndInvokeAgent/tests/*
 kb/prepare_data.py
+agent/agenteval_traces/*
 
 kb/csv_data/*
 *.csv
