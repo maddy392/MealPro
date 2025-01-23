@@ -1,0 +1,39 @@
+evaluator:
+  model: claude-3
+  aws_profile: mealPro
+  aws_region: us-east-1
+target:
+  aws_profile: mealPro
+  aws_region: us-east-1
+  type: bedrock-agent
+  bedrock_agent_id: TKAFFO7AR2
+  bedrock_agent_alias_id: TSTALIASID
+tests:
+  get_some_recipes:
+    steps:
+    - Ask agent for a few recipes
+      if agent asks for any preferences, respond by saying "any salads please"
+    initial_prompt: Can you recommend me a few recipes plz?
+    expected_results:
+    - The agent returns a list of few recipes
+  get_some_recipes_from_simple_query:
+    steps:
+    - Ask agent for a few recipes with a simple query
+    initial_prompt: Can you recommend me a few falafel recipes plz?
+    expected_results:
+    - The agent returns a list of few falafel recipes
+  get_some_recipes_from_ingredients:
+    steps:
+    - Ask agent for a few recipes that use a few ingredients
+    initial_prompt: any salads with kale and tomatoes plz?
+    expected_results:
+    - The agent returns a list of salads with kale and tomatoes
+  get_similar_recipes:
+    steps:
+    - Ask agent for a few recipes 
+      if agent asks for any preferences, respond by saying "any milk shakes please"
+    - Pick recipeId of one of the recipes returned from the response, and ask for similar recipes for that recipeId
+    expected_results:
+    - The agent returns a list of recipes
+    - The agent returns a list of recipes similar to the one asked for
+    max_turns: 4
