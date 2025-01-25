@@ -100,8 +100,8 @@ response = create_or_update_agent_action_group(
 								"required": False
 							}, 
 							"cuisine": {
-        						"description": "The type of cuisine the user is requesting for. Stick to the following options please: [\"All\", \"Italian\", \"Mexican\", \"American\", \"Asian\", \"Chinese\", \"Japanese\", \"Indian\", \"Mediterranean\", \"French\", \"Greek\", \"Spanish\", \"Thai\", \"Korean\", \"Vietnamese\", \"Latin American\", \"British\", \"Caribbean\", \"Cajun\", \"German\", \"Irish\", \"African\", \"European\", \"Eastern European\", \"Southern\", \"Middle Eastern\", \"Nordic\", \"Jewish\"]",
-        						"type": "string",
+        						"description": "The type of cuisine(s) the user is requesting for. Stick to the following options please: [\"All\", \"Italian\", \"Mexican\", \"American\", \"Asian\", \"Chinese\", \"Japanese\", \"Indian\", \"Mediterranean\", \"French\", \"Greek\", \"Spanish\", \"Thai\", \"Korean\", \"Vietnamese\", \"Latin American\", \"British\", \"Caribbean\", \"Cajun\", \"German\", \"Irish\", \"African\", \"European\", \"Eastern European\", \"Southern\", \"Middle Eastern\", \"Nordic\", \"Jewish\"]",
+        						"type": "array",
         						"required": False
     						}, 
 							"dishType": {

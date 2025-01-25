@@ -10,18 +10,40 @@ def lambda_handler(event, context):
     query = parameters.get("query", "recipes")
     dishType = parameters.get("dishType", None)
     ingredients = parameters.get("ingredients", [])
-    cuisine = parameters.get("cuisine", None)
+    cuisine = parameters.get("cuisine", [])
 
     # Normalize the ingredients input
     if ingredients:
-        # If ingredients is a comma-separated string, split it into a list
-        if isinstance(ingredients, str):
-            ingredients = ingredients.split(",")
-        # If it's a single string (no commas), wrap it in a list
-        elif isinstance(ingredients, list):
-            pass  # Already a list, no action needed
-        else:
-            ingredients = [ingredients]  # Wrap single string or any other type in a list
+        try:
+            if isinstance(ingredients, str):
+                # Check if it's a JSON array string
+                if ingredients.startswith("[") and ingredients.endswith("]"):
+                    ingredients = json.loads(ingredients.replace("'", '"'))  # Parse as JSON array
+                elif "," in ingredients:
+                    ingredients = [ingredient.strip() for ingredient in ingredients.split(",")]  # Split by comma
+                else:
+                    ingredients = [ingredients.strip()]  # Treat as a single string and wrap in a list
+            elif not isinstance(ingredients, list):
+                ingredients = [ingredients]  # Wrap non-list types in a list
+        except json.JSONDecodeError:
+            raise ValueError(f"Invalid format for ingredients: {ingredients}")
+
+
+    # Normalize the cuisine input
+    if cuisine:
+        try:
+            if isinstance(cuisine, str):
+                # Check if it's a JSON array string
+                if cuisine.startswith("[") and cuisine.endswith("]"):
+                    cuisine = json.loads(cuisine.replace("'", '"'))  # Parse as JSON array
+                elif "," in cuisine:
+                    cuisine = [c.strip() for c in cuisine.split(",")]  # Split by comma
+                else:
+                    cuisine = [cuisine.strip()]  # Treat as a single string and wrap in a list
+            elif not isinstance(cuisine, list):
+                cuisine = [cuisine]  # Wrap non-list types in a list
+        except json.JSONDecodeError:
+            raise ValueError(f"Invalid format for cuisine: {cuisine}")
 
     # Build individual conditions
     conditions = []
@@ -35,7 +57,9 @@ def lambda_handler(event, context):
         })
 
     if ingredients:
+        print(ingredients)
         for ingredient in ingredients:
+            print(ingredient)
             conditions.append({
                 "stringContains": {
                     "key": "ingredients",
@@ -44,11 +68,17 @@ def lambda_handler(event, context):
             })
 
     if cuisine:
+        # Add an `orAll` condition for cuisines
         conditions.append({
-            "listContains": {
-                "key": "cuisines",
-                "value": cuisine
-            }
+            "orAll": [
+                {
+                    "listContains": {
+                        "key": "cuisines",
+                        "value": c.strip()
+                    }
+                }
+                for c in cuisine
+            ]
         })
 
     # Build the final filter based on the number of conditions
