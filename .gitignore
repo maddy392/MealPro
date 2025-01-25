@@ -33,6 +33,7 @@ agent/ActionGroupsAndInvokeAgent/__init__.py
 agent/ActionGroupsAndInvokeAgent/tests/*
 kb/prepare_data.py
 agent/agenteval_traces/*
+agent/agenteval_summary.md
 
 kb/csv_data/*
 *.csv

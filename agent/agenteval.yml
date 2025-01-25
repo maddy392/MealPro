@@ -25,9 +25,9 @@ tests:
   get_some_recipes_from_ingredients:
     steps:
     - Ask agent for a few recipes that use a few ingredients
-    initial_prompt: any salads with kale and tomatoes plz?
+    initial_prompt: any salads with kale and eggs plz?
     expected_results:
-    - The agent returns a list of salads with kale and tomatoes
+    - The agent returns a list of salads with kale and eggs
   get_similar_recipes:
     steps:
     - Ask agent for a few recipes 
