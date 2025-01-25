@@ -79,7 +79,7 @@ def lambda_handler(event, context):
     bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime')
 
     # Set knowledge base ID
-    kb_id_standard = "CBMFQH60JT"
+    kb_id_standard = "VXTEJJNW5V"
 
     # Attempt to make the API call
     try:
