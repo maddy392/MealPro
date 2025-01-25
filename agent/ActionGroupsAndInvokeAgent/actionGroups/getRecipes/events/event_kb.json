@@ -12,9 +12,9 @@
 	"function": "string",
 	"parameters": [
 		{
-			"name": "query",
-			"type": "string",
-			"value": "tiramisu"
+			"name": "ingredients",
+			"type": "array",
+			"value": "kale,eggs"
 		}
 	],
 	"sessionAttributes": {
