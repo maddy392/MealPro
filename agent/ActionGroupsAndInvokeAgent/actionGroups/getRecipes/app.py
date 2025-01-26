@@ -12,38 +12,35 @@ def lambda_handler(event, context):
     ingredients = parameters.get("ingredients", [])
     cuisine = parameters.get("cuisine", [])
 
-    # Normalize the ingredients input
-    if ingredients:
-        try:
-            if isinstance(ingredients, str):
-                # Check if it's a JSON array string
-                if ingredients.startswith("[") and ingredients.endswith("]"):
-                    ingredients = json.loads(ingredients.replace("'", '"'))  # Parse as JSON array
-                elif "," in ingredients:
-                    ingredients = [ingredient.strip() for ingredient in ingredients.split(",")]  # Split by comma
-                else:
-                    ingredients = [ingredients.strip()]  # Treat as a single string and wrap in a list
-            elif not isinstance(ingredients, list):
-                ingredients = [ingredients]  # Wrap non-list types in a list
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid format for ingredients: {ingredients}")
-
-
     # Normalize the cuisine input
-    if cuisine:
-        try:
-            if isinstance(cuisine, str):
-                # Check if it's a JSON array string
-                if cuisine.startswith("[") and cuisine.endswith("]"):
-                    cuisine = json.loads(cuisine.replace("'", '"'))  # Parse as JSON array
-                elif "," in cuisine:
-                    cuisine = [c.strip() for c in cuisine.split(",")]  # Split by comma
-                else:
-                    cuisine = [cuisine.strip()]  # Treat as a single string and wrap in a list
-            elif not isinstance(cuisine, list):
-                cuisine = [cuisine]  # Wrap non-list types in a list
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid format for cuisine: {cuisine}")
+    try:
+        if isinstance(cuisine, str):
+            if cuisine.startswith("[") and cuisine.endswith("]"):
+                # Replace single quotes with double quotes to make it valid JSON
+                cuisine = cuisine.replace("'", '"')
+                # Parse the JSON string into a list
+                cuisine = json.loads(cuisine)
+            else:
+                cuisine = [cuisine] if cuisine else []
+        else:
+            cuisine = []  # Default to empty list if not a string
+    except Exception as e:
+        raise ValueError(f"Error processing cuisine: {cuisine}. Error: {str(e)}")
+
+    # Normalize the ingredients input
+    try:
+        if isinstance(ingredients, str):
+            if ingredients.startswith("[") and ingredients.endswith("]"):
+                # Replace single quotes with double quotes to make it valid JSON
+                ingredients = ingredients.replace("'", '"')
+                # Parse the JSON string into a list
+                ingredients = json.loads(ingredients)
+            else:
+                ingredients = [ingredients] if ingredients else []
+        else:
+            ingredients = []  # Default to empty list if not a string
+    except Exception as e:
+        raise ValueError(f"Error processing ingredients: {ingredients}. Error: {str(e)}")
 
     # Build individual conditions
     conditions = []
@@ -68,18 +65,27 @@ def lambda_handler(event, context):
             })
 
     if cuisine:
-        # Add an `orAll` condition for cuisines
-        conditions.append({
-            "orAll": [
-                {
-                    "listContains": {
-                        "key": "cuisines",
-                        "value": c.strip()
+        if len(cuisine) > 1:
+            # Add an `orAll` condition for multiple cuisines
+            conditions.append({
+                "orAll": [
+                    {
+                        "listContains": {
+                            "key": "cuisines",
+                            "value": c.strip()
+                        }
                     }
+                    for c in cuisine
+                ]
+            })
+        elif len(cuisine) == 1:
+            # Use `listContains` directly if only one cuisine is provided
+            conditions.append({
+                "listContains": {
+                    "key": "cuisines",
+                    "value": cuisine[0]
                 }
-                for c in cuisine
-            ]
-        })
+            })
 
     # Build the final filter based on the number of conditions
     if len(conditions) >= 2:

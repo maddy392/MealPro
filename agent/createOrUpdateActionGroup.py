@@ -86,11 +86,11 @@ response = create_or_update_agent_action_group(
 	function_schema={
 				"functions": [
 					{	
-						"description": "Fetch recipes based on optinal user preferences. Parameters include query, ingredients, cuisine and dishType. For cuisine and dishType, stick to the options provided please. Leave all parameters blank if user has no preferences. If the user's preferences do not fit into cuisine, dishtype or ingredients, pass it on as query. e.g. is user asks for 'milkshakes', passing parameter 'query' as 'milkshake' is way better than passing 'dishtype' as 'drink'",
+						"description": "Fetch recipes based on optional user preferences. Parameters include query, ingredients, cuisine and dishType. Query parameter is the most versatile and its free-text. Use it generously. Use filters `cuisine` and `dishtypes` when clearly asked by user and stick to the options provided please. Leave all parameters blank if user has no preferences. If the user's preferences do not fit into cuisine, dishtype or ingredients, pass it on as query. e.g. is user asks for 'milkshakes', passing parameter 'query' as 'milkshake' instead of passing 'dishtype' as 'drink'",
 						"name": "getRecipes",
 						"parameters": {
 							"query": {
-								"description": "short and crisp natural language query from the user. e.g. If the user says 'I want to cook a chicken curry', the query is 'chicken curry'. if user asks for Jamaican recipes, set query as Jamaican recipes",
+								"description": "short and crisp natural language query from the user. This is the only parameter that is free-text. Use it generously. e.g. If the user says 'I want to cook a chicken curry', the query is 'chicken curry'. if user asks for Jamaican recipes, set query as Jamaican recipes. If the dishtype is not part of the available options, use that as a query. e.g. if user asks 'can u recommend some chinese wraps', since 'wraps' is not part of the options provided for dishtype, make query parameter as 'wrap'.",
 								"type": "string",
 								"required": False
 							}, 

@@ -14,7 +14,7 @@
 		{
 			"name": "ingredients",
 			"type": "array",
-			"value": "kale,eggs"
+			"value": "['kale', 'eggs']"
 		}
 	],
 	"sessionAttributes": {

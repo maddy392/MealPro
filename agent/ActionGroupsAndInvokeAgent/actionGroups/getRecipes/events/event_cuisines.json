@@ -1,36 +1,22 @@
 {
-	"messageVersion": "1.0",
-	"agent": {
-		"name": "string",
-		"id": "string",
-		"alias": "string",
-		"version": "string"
-	},
-	"inputText": "string",
-	"sessionId": "string",
-	"actionGroup": "string",
-	"function": "string",
-	"parameters": [
-		{
-			"name": "cuisine",
-			"type": "array",
-			"value": "['Mediterranean', 'Italian']"
-		}, 
-		{
-			"name": "query",
-			"type": "string",
-			"value": "stew"
-		}, 
-		{
-			"name": "ingredients",
-			"type": "array",
-			"value": "['beans']"
-		}
-	],
-	"sessionAttributes": {
-		"string": "string"
-	},
-	"promptSessionAttributes": {
-		"string": "string"
-	}
-  }
+    "messageVersion": "1.0",
+    "function": "getRecipes",
+    "parameters": [
+        {
+            "name": "cuisine",
+            "type": "array",
+            "value": "['Indian']"
+        }
+    ],
+    "sessionId": "TestSession",
+    "agent": {
+        "name": "MealPro",
+        "version": "DRAFT",
+        "id": "TKAFFO7AR2",
+        "alias": "TSTALIASID"
+    },
+    "actionGroup": "getRecipesActionGroup",
+    "sessionAttributes": {},
+    "promptSessionAttributes": {},
+    "inputText": "indian recipes"
+}
