@@ -86,11 +86,11 @@ response = create_or_update_agent_action_group(
 	function_schema={
 				"functions": [
 					{	
-						"description": "Fetch recipes based on optional user preferences. Parameters include query, ingredients, cuisine and dishType. Query parameter is the most versatile and its free-text. Use it generously. Use filters `cuisine` and `dishtypes` when clearly asked by user and stick to the options provided please. Leave all parameters blank if user has no preferences. If the user's preferences do not fit into cuisine, dishtype or ingredients, pass it on as query. e.g. is user asks for 'milkshakes', passing parameter 'query' as 'milkshake' instead of passing 'dishtype' as 'drink'",
+						"description": "Fetch recipes based on optional user preferences. Analyze the user's input to extract preferences for recipes using the parameters: query (free-text, most versatile), ingredients, cuisine, and dishType. Use query generously for any general or ambiguous input. Identify cuisine and dishType only if explicitly mentioned and ensure they match the valid options provided: cuisine includes [Italian, Mexican, American, Asian, Chinese, Japanese, Indian, Mediterranean, French, Greek, Spanish, Thai, Korean, Vietnamese, Latin American, British, Caribbean, Cajun, German, Irish, African, European, Eastern European, Southern, Middle Eastern, Nordic, Jewish] and dishType includes [main course, side dish, dessert, appetizer, salad, bread, breakfast, soup, beverage, sauce, marinade, fingerfood, snack, drink]. If no explicit parameters are mentioned, use the input entirely as query. For example, if the user says 'I want an Indian curry with chickpeas', extract cuisine=Indian, ingredients=[chickpeas], and query=curry. For 'milkshakes', set query=milkshakes. Ensure no parameter is forced; leave them blank if not mentioned.",
 						"name": "getRecipes",
 						"parameters": {
 							"query": {
-								"description": "short and crisp natural language query from the user. This is the only parameter that is free-text. Use it generously. e.g. If the user says 'I want to cook a chicken curry', the query is 'chicken curry'. if user asks for Jamaican recipes, set query as Jamaican recipes. If the dishtype is not part of the available options, use that as a query. e.g. if user asks 'can u recommend some chinese wraps', since 'wraps' is not part of the options provided for dishtype, make query parameter as 'wrap'.",
+								"description": "short and crisp natural language query from the user. This is the only parameter that is free-text. Use it generously. e.g. If the user says 'I want to cook a chicken curry', the query is 'chicken curry'. if user asks for Jamaican recipes, set query as Jamaican recipes (as Jamaican is not allowed in parameter `cuisine`). e.g. if user asks 'can u recommend some chinese wraps', since 'wraps' is not part of the options provided for dishtype, make query parameter as 'wrap'.",
 								"type": "string",
 								"required": False
 							}, 
@@ -100,7 +100,7 @@ response = create_or_update_agent_action_group(
 								"required": False
 							}, 
 							"cuisine": {
-        						"description": "The type of cuisine(s) the user is requesting for. Stick to the following options please: [\"All\", \"Italian\", \"Mexican\", \"American\", \"Asian\", \"Chinese\", \"Japanese\", \"Indian\", \"Mediterranean\", \"French\", \"Greek\", \"Spanish\", \"Thai\", \"Korean\", \"Vietnamese\", \"Latin American\", \"British\", \"Caribbean\", \"Cajun\", \"German\", \"Irish\", \"African\", \"European\", \"Eastern European\", \"Southern\", \"Middle Eastern\", \"Nordic\", \"Jewish\"]",
+        						"description": "The type of cuisine(s) the user is requesting for. Stick to the following options please: [\"Italian\", \"Mexican\", \"American\", \"Asian\", \"Chinese\", \"Japanese\", \"Indian\", \"Mediterranean\", \"French\", \"Greek\", \"Spanish\", \"Thai\", \"Korean\", \"Vietnamese\", \"Latin American\", \"British\", \"Caribbean\", \"Cajun\", \"German\", \"Irish\", \"African\", \"European\", \"Eastern European\", \"Southern\", \"Middle Eastern\", \"Nordic\", \"Jewish\"]",
         						"type": "array",
         						"required": False
     						}, 
