@@ -5,7 +5,7 @@
         {
             "name": "cuisine",
             "type": "array",
-            "value": "['Indian']"
+            "value": "Mediterranean,Italian"
         }
     ],
     "sessionId": "TestSession",

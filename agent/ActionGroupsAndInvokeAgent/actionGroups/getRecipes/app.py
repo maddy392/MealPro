@@ -26,6 +26,8 @@ def lambda_handler(event, context):
                 cuisine = cuisine.replace("'", '"')
                 # Parse the JSON string into a list
                 cuisine = json.loads(cuisine)
+            elif "," in cuisine:  # Handle comma-separated string
+                cuisine = [c.strip() for c in cuisine.split(",")]
             else:
                 cuisine = [cuisine] if cuisine else []
         else:
@@ -41,6 +43,8 @@ def lambda_handler(event, context):
                 ingredients = ingredients.replace("'", '"')
                 # Parse the JSON string into a list
                 ingredients = json.loads(ingredients)
+            elif "," in ingredients:  # Handle comma-separated string
+                ingredients = [i.strip() for i in ingredients.split(",")]
             else:
                 ingredients = [ingredients] if ingredients else []
         else:
