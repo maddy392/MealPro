@@ -17,7 +17,7 @@ response = bedrock_agent_runtime_client.invoke_agent(
     agentId='TKAFFO7AR2',
     agentAliasId='TSTALIASID',
     sessionId='TestSession',
-    inputText='any salads with goat cheese ?', 
+    inputText='any vegan mediterranean recipes', 
 	enableTrace=True
 )
 

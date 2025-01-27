@@ -79,41 +79,90 @@ def create_or_update_agent_action_group(
 
 response = create_or_update_agent_action_group(
 	name="getRecipesActionGroup",
-	description="This Action Group fetches recipes based on user preferences. Use this action group even when user provides no preferences in which case call this action group with no parameters",
-	agent_id="TKAFFO7AR2",
-	agent_version="DRAFT",
-	function_arn="arn:aws:lambda:us-east-1:294090989896:function:agent-GetRecipesFunction-53W7zP0YIFTU",
-	function_schema={
-				"functions": [
-					{	
-						"description": "Fetch recipes based on optional user preferences. Analyze the user's input to extract preferences for recipes using the parameters: query (free-text, most versatile), ingredients, cuisine, and dishType. Use query generously for any general or ambiguous input. Identify cuisine and dishType only if explicitly mentioned and ensure they match the valid options provided: cuisine includes [Italian, Mexican, American, Asian, Chinese, Japanese, Indian, Mediterranean, French, Greek, Spanish, Thai, Korean, Vietnamese, Latin American, British, Caribbean, Cajun, German, Irish, African, European, Eastern European, Southern, Middle Eastern, Nordic, Jewish] and dishType includes [main course, side dish, dessert, appetizer, salad, bread, breakfast, soup, beverage, sauce, marinade, fingerfood, snack, drink]. If no explicit parameters are mentioned, use the input entirely as query. For example, if the user says 'I want an Indian curry with chickpeas', extract cuisine=Indian, ingredients=[chickpeas], and query=curry. For 'milkshakes', set query=milkshakes. Ensure no parameter is forced; leave them blank if not mentioned.",
-						"name": "getRecipes",
-						"parameters": {
-							"query": {
-								"description": "short and crisp natural language query from the user. This is the only parameter that is free-text. Use it generously. e.g. If the user says 'I want to cook a chicken curry', the query is 'chicken curry'. if user asks for Jamaican recipes, set query as Jamaican recipes (as Jamaican is not allowed in parameter `cuisine`). e.g. if user asks 'can u recommend some chinese wraps', since 'wraps' is not part of the options provided for dishtype, make query parameter as 'wrap'.",
-								"type": "string",
-								"required": False
-							}, 
-							"ingredients" : {
-								"description": "The ingredient list that the recipe the user has requested should contain. E.g. if the user asks for Kale Salad, ingredients is [\"kale\"]. Make sure this parameter is an array",
-								"type": "array",
-								"required": False
-							}, 
-							"cuisine": {
-        						"description": "The type of cuisine(s) the user is requesting for. Stick to the following options please: [\"Italian\", \"Mexican\", \"American\", \"Asian\", \"Chinese\", \"Japanese\", \"Indian\", \"Mediterranean\", \"French\", \"Greek\", \"Spanish\", \"Thai\", \"Korean\", \"Vietnamese\", \"Latin American\", \"British\", \"Caribbean\", \"Cajun\", \"German\", \"Irish\", \"African\", \"European\", \"Eastern European\", \"Southern\", \"Middle Eastern\", \"Nordic\", \"Jewish\"]",
-        						"type": "array",
-        						"required": False
-    						}, 
-							"dishType": {
-								"description": "The type of dish the user is requesting for. Stick to the following options please: [\"main course\", \"side dish\", \"dessert\", \"appetizer\", \"salad\", \"bread\", \"breakfast\", \"soup\", \"beverage\", \"sauce\", \"marinade\", \"fingerfood\", \"snack\", \"drink\"]",
-								"type": "string",
-								"required": False
-							}
-						}, 
-						"requireConfirmation": "DISABLED"
-					}
-				]
-			}
+    description="This Action Group fetches recipes based on user preferences. Use this action group even when "
+        "the user provides no preferences, in which case call this action group with no parameters.",
+    agent_id="TKAFFO7AR2",
+    agent_version="DRAFT",
+    function_arn="arn:aws:lambda:us-east-1:294090989896:function:agent-GetRecipesFunction-53W7zP0YIFTU",
+    function_schema={
+        "functions": [
+            {
+                "description": (
+                    "Fetch recipes based on optional user preferences. Analyze user input to extract preferences using parameters: query (free-text, most versatile), ingredients, cuisine, dishType, and dietary or preparation filters. Use query generously for general or ambiguous input. Identify cuisine and dishType only if explicitly mentioned and ensure they match valid options: cuisine includes [Italian, Mexican, American, Asian, Chinese, Japanese, Indian, Mediterranean, French, Greek, Spanish, Thai, Korean, Vietnamese, Latin American, British, Caribbean, Cajun, German, Irish, African, European, Eastern European, Southern, Middle Eastern, Nordic, Jewish] and dishType includes [main course, side dish, dessert, appetizer, salad, bread, breakfast, soup, beverage, sauce, marinade, fingerfood, snack, drink]. If no explicit parameters are mentioned, use input entirely as query. For example, 'I want an Indian curry with chickpeas' maps to cuisine=Indian, ingredients=[chickpeas], and query=curry. For 'milkshakes', set query=milkshakes. For 'healthy', use healthScore > 50. For 'quick', use readyInMinutes < 30. Leave parameters blank if not mentioned."
+                ),
+                "name": "getRecipes",
+                "parameters": {
+                    "query": {
+                        "description": (
+                            "Short and crisp natural language query from the user. This is the only parameter that is free-text. "
+                            "Use it generously. For example, if the user says 'I want to cook a chicken curry', the query is 'chicken curry'. "
+                            "If the user asks for Jamaican recipes, set query as Jamaican recipes (as Jamaican is not allowed in parameter `cuisine`). "
+                            "For 'milkshakes', set query=milkshakes."
+                        ),
+                        "type": "string",
+                        "required": False
+                    },
+                    "ingredients": {
+                        "description": (
+                            "The ingredient list that the recipe the user has requested should contain. Ensure this parameter is an array. "
+                            "For example, if the user asks for Kale Salad, ingredients=['kale']."
+                        ),
+                        "type": "array",
+                        "required": False
+                    },
+                    "cuisine": {
+                        "description": (
+                            "The type of cuisine(s) the user is requesting. Stick to the following options: "
+                            "[Italian, Mexican, American, Asian, Chinese, Japanese, Indian, Mediterranean, French, Greek, Spanish, "
+                            "Thai, Korean, Vietnamese, Latin American, British, Caribbean, Cajun, German, Irish, African, European, "
+                            "Eastern European, Southern, Middle Eastern, Nordic, Jewish]."
+                        ),
+                        "type": "array",
+                        "required": False
+                    },
+                    "dishType": {
+                        "description": (
+                            "The type of dish the user is requesting. Stick to the following options: [main course, side dish, dessert, appetizer, "
+                            "salad, bread, breakfast, soup, beverage, sauce, marinade, fingerfood, snack, drink]."
+                        ),
+                        "type": "string",
+                        "required": False
+                    },
+                    "vegetarian": {
+                        "description": "Whether the user prefers vegetarian recipes. Set to true if explicitly mentioned.",
+                        "type": "boolean",
+                        "required": False
+                    },
+                    "vegan": {
+                        "description": "Whether the user prefers vegan recipes. Set to true if explicitly mentioned.",
+                        "type": "boolean",
+                        "required": False
+                    },
+                    "glutenFree": {
+                        "description": "Whether the user prefers gluten-free recipes. Set to true if explicitly mentioned.",
+                        "type": "boolean",
+                        "required": False
+                    },
+                    "dairyFree": {
+                        "description": "Whether the user prefers dairy-free recipes. Set to true if explicitly mentioned.",
+                        "type": "boolean",
+                        "required": False
+                    },
+                    "healthScore": {
+                        "description": "Filter recipes by health score. For 'healthy' recipes, set healthScore > 50.",
+                        "type": "integer",
+                        "required": False
+                    },
+                    "readyInMinutes": {
+                        "description": "Filter recipes by preparation time. For 'quick' recipes, set readyInMinutes < 30.",
+                        "type": "integer",
+                        "required": False
+                    }
+                },
+                "requireConfirmation": "DISABLED"
+            }
+        ]
+    }
 )
 
 print(response)

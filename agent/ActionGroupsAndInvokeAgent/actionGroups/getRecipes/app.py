@@ -11,6 +11,12 @@ def lambda_handler(event, context):
     dishType = parameters.get("dishType", None)
     ingredients = parameters.get("ingredients", [])
     cuisine = parameters.get("cuisine", [])
+    vegetarian = parameters.get("vegetarian", None)
+    vegan = parameters.get("vegan", None)
+    glutenFree = parameters.get("glutenFree", None)
+    dairyFree = parameters.get("dairyFree", None)
+    healthScore = parameters.get("healthScore", None)
+    readyInMinutes = parameters.get("readyInMinutes", None)
 
     # Normalize the cuisine input
     try:
@@ -86,6 +92,79 @@ def lambda_handler(event, context):
                     "value": cuisine[0]
                 }
             })
+
+    # Normalize healthScore and dietary preferences
+    try:
+        if healthScore is not None:
+            healthScore = int(healthScore)  # Convert string to integer
+    except ValueError:
+        raise ValueError(f"Invalid value for healthScore: {healthScore}")
+    
+    try:
+        if readyInMinutes is not None:
+            readyInMinutes = int(readyInMinutes)  # Convert string to integer
+    except ValueError:
+        raise ValueError(f"Invalid value for healthScore: {readyInMinutes}")
+
+    if vegetarian is not None:
+        vegetarian = vegetarian.lower() == "true"  # Convert to boolean
+
+    if vegan is not None:
+        vegan = vegan.lower() == "true"  # Convert to boolean
+
+    if glutenFree is not None:
+        glutenFree = glutenFree.lower() == "true"  # Convert to boolean
+
+    if dairyFree is not None:
+        dairyFree = dairyFree.lower() == "true"  # Convert to boolean
+    
+    if vegetarian is not None:
+        conditions.append({
+            "equals": {
+                "key": "vegetarian",
+                "value": vegetarian
+            }
+        })
+
+    if vegan is not None:
+        conditions.append({
+            "equals": {
+                "key": "vegan",
+                "value": vegan
+            }
+        })
+
+    if glutenFree is not None:
+        conditions.append({
+            "equals": {
+                "key": "glutenFree",
+                "value": glutenFree
+            }
+        })
+
+    if dairyFree is not None:
+        conditions.append({
+            "equals": {
+                "key": "dairyFree",
+                "value": dairyFree
+            }
+        })
+
+    if healthScore:
+        conditions.append({
+            "greaterThan": {
+                "key": "healthScore",
+                "value": healthScore
+            }
+        })
+
+    if readyInMinutes:
+        conditions.append({
+            "lessThan": {
+                "key": "readyInMinutes",
+                "value": readyInMinutes
+            }
+        })
 
     # Build the final filter based on the number of conditions
     if len(conditions) >= 2:

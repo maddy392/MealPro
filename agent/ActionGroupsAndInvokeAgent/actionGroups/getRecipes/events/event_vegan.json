@@ -1,0 +1,37 @@
+{
+    "messageVersion": "1.0",
+    "function": "getRecipes",
+    "parameters": [
+        {
+            "name": "cuisine",
+            "type": "array",
+            "value": "['Indian']"
+        }, 
+        {
+            "name": "healthScore",
+            "type": "integer",
+            "value": "20"
+        }, 
+        {
+            "name": "vegetarian",
+            "type": "boolean",
+            "value": "false"
+        }, 
+        {
+            "name": "ingredients",
+            "type": "array",
+            "value": "['chicken']"
+        }
+    ],
+    "sessionId": "TestSession",
+    "agent": {
+        "name": "MealPro",
+        "version": "DRAFT",
+        "id": "TKAFFO7AR2",
+        "alias": "TSTALIASID"
+    },
+    "actionGroup": "getRecipesActionGroup",
+    "sessionAttributes": {},
+    "promptSessionAttributes": {},
+    "inputText": "indian recipes"
+}
