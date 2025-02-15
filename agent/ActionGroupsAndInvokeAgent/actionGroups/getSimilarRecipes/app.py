@@ -17,6 +17,9 @@ def lambda_handler(event, context):
     function = event['function']
     parameters = event.get('parameters', [])
     print(event)
+    # knowledge_base_id="WGVGYSRSZJ"
+    knowledge_base_id = event.get("sessionAttributes", {}).get("knowledgeBaseId", "")
+
 
     recipe_id = next((param["value"] for param in parameters if param["name"] == "recipeId"), None)
     if recipe_id is not None:
@@ -48,7 +51,7 @@ def lambda_handler(event, context):
         }
 
     response = bedrock_agent_runtime_client.retrieve(
-        knowledgeBaseId="VXTEJJNW5V",
+        knowledgeBaseId=knowledge_base_id,
         retrievalQuery={"text": "recipe"},
         retrievalConfiguration={
             "vectorSearchConfiguration": {
@@ -66,7 +69,7 @@ def lambda_handler(event, context):
     # print(original_recipe["dishTypes"], original_recipe["cuisines"])
 
     title_response = bedrock_agent_runtime_client.retrieve(
-        knowledgeBaseId="VXTEJJNW5V",
+        knowledgeBaseId=knowledge_base_id,
         retrievalQuery={"text": original_title},
         retrievalConfiguration={
             "vectorSearchConfiguration": {
@@ -84,7 +87,7 @@ def lambda_handler(event, context):
     # print(title_response)
 
     ingredients_response = bedrock_agent_runtime_client.retrieve(
-        knowledgeBaseId="VXTEJJNW5V",
+        knowledgeBaseId=knowledge_base_id,
         retrievalQuery={"text": original_ingredients},
         retrievalConfiguration={
             "vectorSearchConfiguration": {

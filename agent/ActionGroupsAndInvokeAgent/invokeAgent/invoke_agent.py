@@ -79,7 +79,17 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 			agentAliasId=agentAliasId,
 			sessionId=sessionId,
 			inputText=inputText, 
-			enableTrace=True, 
+			enableTrace=True,
+			bedrockModelConfigurations={
+        		'performanceConfig': {
+            		'latency': 'optimized'
+        		}
+    		}, 
+			sessionState={
+				'sessionAttributes' : {
+					'knowledgeBaseId': "WGVGYSRSZJ"
+				}
+			}
 		)
 	except Exception as e:
 		output_msg = {

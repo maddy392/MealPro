@@ -17,6 +17,11 @@ def lambda_handler(event, context):
     dairyFree = parameters.get("dairyFree", None)
     healthScore = parameters.get("healthScore", None)
     readyInMinutes = parameters.get("readyInMinutes", None)
+    kb_id_standard = event.get("sessionAttributes", {}).get("knowledgeBaseId", "")
+    # print(f"kb id: {}")
+
+    # Set knowledge base ID
+    # kb_id_standard = "WGVGYSRSZJ"
 
     # Normalize the cuisine input
     try:
@@ -196,9 +201,6 @@ def lambda_handler(event, context):
 
     # Initialize Bedrock client
     bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime')
-
-    # Set knowledge base ID
-    kb_id_standard = "VXTEJJNW5V"
 
     # Attempt to make the API call
     try:

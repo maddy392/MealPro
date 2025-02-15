@@ -12,6 +12,7 @@
 		8A6784772CB98CE30081EE7F /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = 8A6784762CB98CE30081EE7F /* Amplify */; };
 		8A6784982CB98EDD0081EE7F /* amplify_outputs.json in Resources */ = {isa = PBXBuildFile; fileRef = 8A6784972CB98EDD0081EE7F /* amplify_outputs.json */; };
 		8A67849B2CB98F5D0081EE7F /* Authenticator in Frameworks */ = {isa = PBXBuildFile; productRef = 8A67849A2CB98F5D0081EE7F /* Authenticator */; };
+		8AD5371D2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 8AD5371C2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 			files = (
 				8A67849B2CB98F5D0081EE7F /* Authenticator in Frameworks */,
 				8A6784772CB98CE30081EE7F /* Amplify in Frameworks */,
+				8AD5371D2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin in Frameworks */,
 				8A6784732CB98CE30081EE7F /* AWSAPIPlugin in Frameworks */,
 				8A6784752CB98CE30081EE7F /* AWSCognitoAuthPlugin in Frameworks */,
 			);
@@ -47,6 +49,7 @@
 			children = (
 				8A6784972CB98EDD0081EE7F /* amplify_outputs.json */,
 				8A6784592CB987460081EE7F /* MealPro */,
+				8AD5371B2D5FF1E600839E13 /* Frameworks */,
 				8A6784582CB987460081EE7F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -57,6 +60,13 @@
 				8A6784572CB987460081EE7F /* MealPro.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8AD5371B2D5FF1E600839E13 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,6 +93,7 @@
 				8A6784742CB98CE30081EE7F /* AWSCognitoAuthPlugin */,
 				8A6784762CB98CE30081EE7F /* Amplify */,
 				8A67849A2CB98F5D0081EE7F /* Authenticator */,
+				8AD5371C2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin */,
 			);
 			productName = MealPro;
 			productReference = 8A6784572CB987460081EE7F /* MealPro.app */;
@@ -387,6 +398,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8A6784992CB98F5D0081EE7F /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */;
 			productName = Authenticator;
+		};
+		8AD5371C2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */;
+			productName = AWSPinpointAnalyticsPlugin;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

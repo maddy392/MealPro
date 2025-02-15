@@ -16,7 +16,7 @@ bedrock_agent_client = session.client('bedrock-agent')
 bedrock_agent_runtime_client = session.client('bedrock-agent-runtime') 
 logging.basicConfig(format='[%(asctime)s] p%(process)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
-knowledge_base_id = "VXTEJJNW5V"
+knowledge_base_id = "WGVGYSRSZJ"
 
 
 query = "any dumplings?"

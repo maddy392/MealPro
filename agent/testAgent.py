@@ -17,8 +17,13 @@ response = bedrock_agent_runtime_client.invoke_agent(
     agentId='TKAFFO7AR2',
     agentAliasId='TSTALIASID',
     sessionId='TestSession',
-    inputText='french pastries?', 
-	enableTrace=True
+    inputText='tea?', 
+	enableTrace=True, 
+    sessionState={
+        'sessionAttributes' : {
+            'knowledgeBaseId': "WGVGYSRSZJ"
+        }
+    }
 )
 
 # Access the event stream in the response

@@ -25,90 +25,104 @@ struct HomeView: View {
     @State private var currentIndex = 1 // Start at the first actual item
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Welcome, \(authController.email.split(separator: "@").first ?? "Guest")")
-                    .font(.title2)
-                    .bold()
-                    .frame(maxWidth: .infinity, alignment: .leading) // Left-align text
-                
-                Button(action: {
-                    Task {
-                        await authController.signOut()
-                    }
-                }) {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 28, height: 28)
-                        .foregroundColor(.red)
-                }
-            }
-            .padding(.top, 20) // Adds space from top
-            
-            // Featured Recipes Section
-            VStack(spacing: 10) {
-                TabView(selection: $currentIndex) {
-                    ForEach(0..<featuredRecipes.count, id: \.self) { index in
-                        ZStack(alignment: .bottomLeading) {
-                            AsyncImage(url: URL(string: featuredRecipes[index].image!)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: 200)
-                                    .clipped()
-                                    .cornerRadius(10)
-                            } placeholder: {
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(height: 200)
-                                    .cornerRadius(10)
-                            }
-                            
-                            // Gradient Overlay
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.black.opacity(0.6), Color.clear]),
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                            .frame(height: 60)
-                            .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
-                            
-                            // Recipe Title
-                            Text(featuredRecipes[index].title)
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding([.bottom, .leading], 10)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Welcome, \(authController.email.split(separator: "@").first ?? "Guest")")
+                        .font(.title2)
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .leading) // Left-align text
+                    
+                    Button(action: {
+                        Task {
+                            await authController.signOut()
                         }
-                        .tag(index) // Assign tag for TabView
+                    }) {
+                        Image(systemName: "arrow.right.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.red)
                     }
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .frame(height: 200)
-                .onChange(of: currentIndex) { _, newValue in
-                    if newValue == 0 { // If swiped to the first buffer item
-                        currentIndex = featuredRecipes.count - 2 // Move to the last actual item
-                    } else if newValue == featuredRecipes.count - 1 { // If swiped to the last buffer item
-                        currentIndex = 1 // Move to the first actual item
+                .padding(.top, 20) // Adds space from top
+                
+                // Featured Recipes Section
+                VStack(spacing: 20) {
+                    TabView(selection: $currentIndex) {
+                        ForEach(0..<featuredRecipes.count, id: \.self) { index in
+                            ZStack(alignment: .bottomLeading) {
+                                AsyncImage(url: URL(string: featuredRecipes[index].image!)) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(height: 200)
+                                        .clipped()
+                                        .cornerRadius(10)
+                                } placeholder: {
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(height: 200)
+                                        .cornerRadius(10)
+                                }
+                                
+                                // Radial Gradient Overlay
+                                RadialGradient(
+                                    gradient: Gradient(colors: [Color.black.opacity(1.5), Color.clear]),
+                                    center: .bottomLeading,
+                                    startRadius: 0,
+                                    endRadius: 150 // Adjust radius for size of the gradient
+                                )
+                                
+                                // Recipe Title
+                                Text(featuredRecipes[index].title)
+                                    .font(.subheadline)
+                                    .lineLimit(5)
+                                    .bold()
+                                    .foregroundColor(.white)
+                                    .padding(5)
+                                    .frame(maxWidth: 130, alignment: .leading)
+                                    .minimumScaleFactor(0.5) // Allow the font size to scale down (50% of the base font)
+                                
+                            }
+                            .tag(index) // Assign tag for TabView
+                        }
                     }
-                }
-
-                // Custom Dots
-                HStack(spacing: 8) {
-                    ForEach(0..<featuredRecipes.count, id: \.self) { index in
-                        Circle()
-                            .fill(index == currentIndex ? Color.blue : Color.gray)
-                            .frame(width: 8, height: 8)
-                            .opacity((index == 0 || index == featuredRecipes.count - 1) ? 0 : 1) // Hide first and last dots
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                    .frame(height: 200)
+                    .onChange(of: currentIndex) { _, newValue in
+                        if newValue == 0 { // If swiped to the first buffer item
+                            currentIndex = featuredRecipes.count - 2 // Move to the last actual item
+                        } else if newValue == featuredRecipes.count - 1 { // If swiped to the last buffer item
+                            currentIndex = 1 // Move to the first actual item
+                        }
                     }
+                    
+                    // Custom Dots
+                    HStack(spacing: 8) {
+                        ForEach(0..<featuredRecipes.count, id: \.self) { index in
+                            Circle()
+                                .fill(index == currentIndex ? Color.blue : Color.gray)
+                                .frame(width: 8, height: 8)
+                                .opacity((index == 0 || index == featuredRecipes.count - 1) ? 0 : 1) // Hide first and last dots
+                        }
+                    }
+                    .frame(height: 10)
                 }
-                .frame(height: 10)
+                .padding(.horizontal, 10)
+                
+                // Horizontally Scrollable Recipe Section
+                HorizontalRecipeListView(title: "Featured Recipes", recipes: featuredRecipes)
+                HorizontalRecipeListView(title: "Trending Recipes", recipes: featuredRecipes)
+                HorizontalRecipeListView(title: "Featured Recipes", recipes: featuredRecipes)
+                HorizontalRecipeListView(title: "Trending Recipes", recipes: featuredRecipes)
+                HorizontalRecipeListView(title: "Featured Recipes", recipes: featuredRecipes)
+                HorizontalRecipeListView(title: "Trending Recipes", recipes: featuredRecipes)
+                
+                Spacer()
             }
-            .padding(.horizontal, 10)
-            
-            Spacer()
         }
-        .padding(.horizontal, 20) // Adds left and right padding
+        .padding(.horizontal, 5) // Adds left and right padding
         .navigationTitle("Home")
     }
 }
@@ -133,4 +147,5 @@ struct RoundedCorner: Shape {
 #Preview {
     HomeView()
         .environmentObject(AuthController()) // Provide AuthController for preview
+        .environmentObject(FavoriteViewModel.shared)
 }
