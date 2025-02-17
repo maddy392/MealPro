@@ -80,11 +80,6 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 			sessionId=sessionId,
 			inputText=inputText, 
 			enableTrace=True,
-			bedrockModelConfigurations={
-        		'performanceConfig': {
-            		'latency': 'optimized'
-        		}
-    		}, 
 			sessionState={
 				'sessionAttributes' : {
 					'knowledgeBaseId': "WGVGYSRSZJ"

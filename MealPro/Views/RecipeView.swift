@@ -16,12 +16,13 @@ struct RecipeView: View {
         VStack(alignment: .leading, spacing: 2) {
             ZStack(alignment: .topTrailing) {
                 // Recipe Image
-                AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-636x393.jpg")) { image in
+                AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg")) { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 120, height: 120)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .allowsHitTesting(false)
                 } placeholder: {
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
@@ -52,7 +53,8 @@ struct RecipeView: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 //                .frame(maxWidth: 120)
-                .frame(width: 120, height:34, alignment: .topLeading)
+                .frame(width: 120, alignment: .topLeading)
+                .fixedSize(horizontal: false, vertical: true) // Let the view use its intrinsic height
             
             HStack(spacing: 4) {
                 if recipe.glutenFree == true {
@@ -99,7 +101,7 @@ struct TagBubble: View {
 }
 
 #Preview {
-    RecipeView(recipe: Recipe(recipeId: 776505, title: "Garlicky Kale with Roasted Veggies and Tofu", image: "https://img.spoonacular.com/recipes/776505-312x231.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
+    RecipeView(recipe: Recipe(recipeId: 776505, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/776505-312x231.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
         .environmentObject(FavoriteViewModel.shared)
         .environmentObject(ChatViewModel())
 }

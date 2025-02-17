@@ -123,12 +123,9 @@ class ChatViewModel: ObservableObject {
                 // lets sort recipes by health score
                 recipes.sort { ($0.healthScore ?? 0) > ($1.healthScore ?? 0) }
                 
-                for recipe in recipes {
-                    let recipeMessage = ChatMessage(recipe: recipe, isCurrentUser: false)
-                    DispatchQueue.main.async {
-                        self.messages.append(recipeMessage)
-                    }
-                    try? await Task.sleep(for: .milliseconds(500))
+                let recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
+                DispatchQueue.main.async {
+                    self.messages.append(recipeMessage)
                 }
             } catch {
                 print("Failed to decode recipes: \(error)")

@@ -26,9 +26,15 @@ struct MessageCell: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: currentUser ? .trailing : .leading)
                     .font(currentUser ? .callout : .caption)
-            } else if let recipe = chatMessage.recipe {
-                RecipeView(recipe: recipe)
-                    .environmentObject(FavoriteViewModel.shared)
+            } else if let recipes = chatMessage.recipes, !recipes.isEmpty {
+                if recipes.count == 1 {
+                    RecipeView(recipe: recipes.first!)
+                        .environmentObject(FavoriteViewModel.shared)
+//                        .environmentObject(chatViewModel)
+                } else {
+                    // Use HorizontalRecipeListView when there are multiple recipes.
+                    HorizontalRecipeListView(title: "", recipes: recipes)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: currentUser ? .trailing : .leading) // Align based on the user
