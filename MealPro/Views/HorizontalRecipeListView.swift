@@ -25,9 +25,9 @@ struct HorizontalRecipeListView: View {
                         RecipeView(recipe: recipe)
                     }
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 0)
 //                .contentShape(Rectangle())
-                .simultaneousGesture(DragGesture())
+//                .simultaneousGesture(DragGesture())
             }
             .frame(height: 150) // Adjust height as needed
         }

@@ -9,93 +9,102 @@ import SwiftUI
 
 struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
-    @State private var userInput = ""
+    @State private var text = ""
+    @FocusState private var isFocused: Bool
+    @Namespace private var animation
 
     var body: some View {
-        VStack {
-            ScrollViewReader { scrollViewProxy in
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        Spacer(minLength: 20)
-                        ForEach(Array(viewModel.messages.enumerated()), id: \.element.id) { index, message in
-                            MessageView(currentMessage: message)
-                                .padding(.vertical, verticalPadding(for: index))
-                                .id(message.id)
-                        }
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    Spacer(minLength: 20)
+                    ForEach(viewModel.messages) { message in
+                        MessageBubble(message: message)
+                            .matchedGeometryEffect(id: message.id, in: animation)
+                            .id(message.id)
+//                            .padding(.vertical, verticalPadding(for: message))
                     }
-                    .onChange(of: viewModel.messages) {
-                        withAnimation {
-                            scrollViewProxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
-                        }
+                    // Insert the typing indicator as part of the message list.
+                    if let sysMsg = viewModel.systemMessage {
+                        TypingIndicatorMessageView(systemMessage: sysMsg)
+                            .id("typingIndicator")
                     }
-                    .onAppear {
-                        withAnimation {
-                            scrollViewProxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
-                        }
-                    }
+                    // Extra clear space so the last element isn't hidden.
+                    Color.clear.frame(height: 20)
                 }
-                
-                if let systemMessage = viewModel.systemMessage {
-                    Text(systemMessage.displayMessage)
-                        .foregroundColor(.gray)
-                        .font(.caption)
-                        .padding(.bottom, 8)
-                }
-                
-                HStack {
-                    TextField("Enter message...", text: $userInput)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(height: 44)
-                        .onSubmit {
-                            sendUserMessage()
-                        }
-                    
-                    Button(action: sendUserMessage) {
-                        Image(systemName: "paperplane.fill")
-                            .foregroundStyle(.blue)
-                    }
-                    .disabled(userInput.isEmpty)
-                }
-                .padding()
+                .padding(5)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                inputField(with: proxy)
+            }
+            .onChange(of: viewModel.messages) { _, _ in
+                scrollToLatest(using: proxy)
+            }
+            .onChange(of: viewModel.systemMessage) { _, _ in
+                scrollToLatest(using: proxy)
             }
         }
-        .padding(.top, 16)
-        .navigationBarTitle("Chat", displayMode: .inline)
+        .navigationTitle("Chat")
+        .navigationBarTitleDisplayMode(.inline)
         .environmentObject(viewModel)
     }
     
-    /// Compute vertical padding for a message at a given index based on the sender of the previous message.
-    private func verticalPadding(for index: Int) -> CGFloat {
-        // For the first message, use a larger gap.
-        guard index > 0 else { return 20 }
-        let current = viewModel.messages[index]
-        let previous = viewModel.messages[index - 1]
-        // If consecutive messages are from different senders, use a small gap.
-        // If previous is from current user and current is from bot: small gap
-        if previous.isCurrentUser && !current.isCurrentUser {
-            return -5
+    private func inputField(with proxy: ScrollViewProxy) -> some View {
+        HStack(alignment: .bottom) {
+            TextField("Enter message...", text: $text, axis: .vertical)
+                .padding(.vertical, 8)
+                .padding(.horizontal)
+                .focused($isFocused)
+                .onSubmit { submit() }
+                .onChange(of: isFocused) { _, _ in
+                    withAnimation {
+                        scrollToLatest(using: proxy)
+                    }
+                }
+            
+            Button(action: submit) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .imageScale(.large)
+            }
+            .tint(.blue)
+            .disabled(text.isEmpty)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
         }
-        // If previous is from bot and current is from current user: larger gap
-        else if !previous.isCurrentUser && current.isCurrentUser {
-            return 10
-        }
-        // If both are from the same sender, use standard gap
-        else {
-            return -5
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color(.separator), lineWidth: 1)
+        )
+        .padding()
+        .background(
+            Rectangle()
+                .fill(Color(.systemBackground).opacity(0.95))
+                .ignoresSafeArea()
+        )
+    }
+    
+    private func verticalPadding(for message: ChatMessage) -> CGFloat {
+        // Customize vertical spacing per message if needed.
+        return 10
+    }
+    
+    private func scrollToLatest(using proxy: ScrollViewProxy) {
+        withAnimation {
+            if viewModel.systemMessage != nil {
+                proxy.scrollTo("typingIndicator", anchor: .bottom)
+            } else {
+                proxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
+            }
         }
     }
-
-    private func sendUserMessage() {
-        let message = userInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !message.isEmpty else { return }
-        
-        viewModel.sendMessage(message)
-        userInput = ""
-    }
-}
-
-#Preview {
-    NavigationView {
-        ChatView()
+    
+    private func submit() {
+        guard !text.isEmpty else { return }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        text = ""
+        withAnimation(.easeInOut(duration: 0.2)) {
+            viewModel.sendMessage(trimmed)
+        }
     }
 }

@@ -7,54 +7,53 @@
 
 import SwiftUI
 
-struct ChatMessage: Identifiable, Equatable {
-    let id = UUID()
-    let content: String?
-    let isCurrentUser: Bool
-    let recipes: [Recipe]?
+public struct ChatMessage: Identifiable, Equatable {
+    public var id = UUID()
+    public var date = Date()
+    public let direction: Direction
+    public let kind: Kind
     
-    // Convenience initializer for text messages
-    init(content: String, isCurrentUser: Bool) {
-        self.content = content
-        self.isCurrentUser = isCurrentUser
-        self.recipes = nil
-    }
-    
-    // Convenience initializer for messages containing recipes
-    init(recipes: [Recipe], isCurrentUser: Bool) {
-        self.isCurrentUser = isCurrentUser
-        self.recipes = recipes
-        self.content = nil
-    }
-    
-    // Convenience initializer for a single recipe message.
-    init(recipe: Recipe, isCurrentUser: Bool) {
-        self.init(recipes: [recipe], isCurrentUser: isCurrentUser)
-    }
-    
-    // Custom Equatable conformance
-    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
-        // Compare id, content and user flag
-        guard lhs.id == rhs.id,
-              lhs.content == rhs.content,
-              lhs.isCurrentUser == rhs.isCurrentUser else {
-            return false
-        }
+    public enum Kind: Equatable {
+        case text(String)
+        case recipes([Recipe])
         
-        // Compare recipes arrays ignoring order, if they exist
-        if let lhsRecipes = lhs.recipes, let rhsRecipes = rhs.recipes {
-            let lhsIds = Set(lhsRecipes.map { $0.recipeId })
-            let rhsIds = Set(rhsRecipes.map { $0.recipeId })
-            return lhsIds == rhsIds
-        } else if lhs.recipes == nil && rhs.recipes == nil {
-            return true
-        } else {
-            return false
+        public static func == (lhs: Kind, rhs: Kind) -> Bool {
+            switch (lhs, rhs) {
+            case (.text(let lText), .text(let rText)):
+                return lText == rText
+            case (.recipes(let lRecipes), .recipes(let rRecipes)):
+                // Compare based on recipeId (order doesn't matter)
+                let lIds = Set(lRecipes.map { $0.recipeId })
+                let rIds = Set(rRecipes.map { $0.recipeId })
+                return lIds == rIds
+            default:
+                return false
+            }
         }
+    }
+    
+    public enum Direction: Equatable {
+        case outgoing, incoming
+    }
+    
+    // Convenience initializers
+    public init(text: String, direction: Direction) {
+        self.kind = .text(text)
+        self.direction = direction
+    }
+    
+    public init(recipe: Recipe, direction: Direction) {
+        self.kind = .recipes([recipe])
+        self.direction = direction
+    }
+    
+    public init(recipes: [Recipe], direction: Direction) {
+        self.kind = .recipes(recipes)
+        self.direction = direction
     }
 }
 
-struct SystemMessage: Identifiable {
+struct SystemMessage: Identifiable, Equatable {
     let id = UUID()
     let displayMessage: String
     var isFinal: Bool = false

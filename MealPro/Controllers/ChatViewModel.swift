@@ -20,14 +20,20 @@ class ChatViewModel: ObservableObject {
         
         if let recipe = recipe {
             searchText = "Give me more similar recipes to this recipe. Recipe ID: \(recipe.recipeId)"
-            userMessage = ChatMessage(recipe: recipe, isCurrentUser: true)
-            let userMessage2 = ChatMessage(content: "Give me more such recipes plz", isCurrentUser: true)
-            messages.append(userMessage)
-            messages.append(userMessage2)
+            userMessage = ChatMessage(recipe: recipe, direction: .outgoing)
+            let userMessage2 = ChatMessage(text: "Give me more such recipes plz", direction: .outgoing)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                messages.append(userMessage)
+                messages.append(userMessage2)
+            }
+//            messages.append(userMessage)
+//            messages.append(userMessage2)
         } else {
             searchText = text
-            userMessage = ChatMessage(content: searchText, isCurrentUser: true)
-            messages.append(userMessage)
+            userMessage = ChatMessage(text: searchText, direction: .outgoing)
+            withAnimation(.easeInOut(duration: 0.2)) {
+                messages.append(userMessage)
+            }
         }
         
 //        let userMessage = ChatMessage(content: text, isCurrentUser: true)
@@ -123,7 +129,7 @@ class ChatViewModel: ObservableObject {
                 // lets sort recipes by health score
                 recipes.sort { ($0.healthScore ?? 0) > ($1.healthScore ?? 0) }
                 
-                let recipeMessage = ChatMessage(recipes: recipes, isCurrentUser: false)
+                let recipeMessage = ChatMessage(recipes: recipes, direction: .incoming)
                 DispatchQueue.main.async {
                     self.messages.append(recipeMessage)
                 }
@@ -133,7 +139,7 @@ class ChatViewModel: ObservableObject {
         }
         
         if let finalChunk = json["text"] as? String {
-            let botMessage = ChatMessage(content: finalChunk, isCurrentUser: false)
+            let botMessage = ChatMessage(text: finalChunk, direction: .incoming)
             DispatchQueue.main.async {
                 self.messages.append(botMessage)
             }
