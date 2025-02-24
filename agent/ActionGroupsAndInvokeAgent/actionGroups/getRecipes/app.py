@@ -116,48 +116,72 @@ def lambda_handler(event, context):
         raise ValueError(f"Invalid value for healthScore: {readyInMinutes}")
 
     if vegetarian is not None:
-        vegetarian = vegetarian.lower() == "true"  # Convert to boolean
+        letVegetarian = vegetarian.lower() == "true"
+        if letVegetarian:
+            conditions.append({
+                "equals": {
+                    "key": "vegetarian",
+                    "value": True
+                }
+            })
+        else:
+            conditions.append({
+                "notEquals": {
+                    "key": "vegetarian",
+                    "value": True
+                }
+            })
 
     if vegan is not None:
-        vegan = vegan.lower() == "true"  # Convert to boolean
+        letVegan = vegan.lower() == "true"
+        if letVegan:
+            conditions.append({
+                "equals": {
+                    "key": "vegan",
+                    "value": True
+                }
+            })
+        else:
+            conditions.append({
+                "notEquals": {
+                    "key": "vegan",
+                    "value": True
+                }
+            })
 
     if glutenFree is not None:
-        glutenFree = glutenFree.lower() == "true"  # Convert to boolean
+        letGlutenFree = glutenFree.lower() == "true"
+        if letGlutenFree:
+            conditions.append({
+                "equals": {
+                    "key": "glutenFree",
+                    "value": True
+                }
+            })
+        else:
+            conditions.append({
+                "notEquals": {
+                    "key": "glutenFree",
+                    "value": True
+                }
+            })
 
     if dairyFree is not None:
-        dairyFree = dairyFree.lower() == "true"  # Convert to boolean
-    
-    if vegetarian is not None:
-        conditions.append({
-            "equals": {
-                "key": "vegetarian",
-                "value": vegetarian
-            }
-        })
-
-    if vegan is not None:
-        conditions.append({
-            "equals": {
-                "key": "vegan",
-                "value": vegan
-            }
-        })
-
-    if glutenFree is not None:
-        conditions.append({
-            "equals": {
-                "key": "glutenFree",
-                "value": glutenFree
-            }
-        })
-
-    if dairyFree is not None:
-        conditions.append({
-            "equals": {
-                "key": "dairyFree",
-                "value": dairyFree
-            }
-        })
+        letDairyFree = dairyFree.lower() == "true"
+        if letDairyFree:
+            conditions.append({
+                "equals": {
+                    "key": "dairyFree",
+                    "value": True
+                }
+            })
+        else:
+            conditions.append({
+                "notEquals": {
+                    "key": "dairyFree",
+                    "value": True
+                }
+            })
 
     if healthScore:
         conditions.append({

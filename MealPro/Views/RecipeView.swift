@@ -11,6 +11,7 @@ struct RecipeView: View {
     let recipe: Recipe
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @EnvironmentObject var chatViewModel: ChatViewModel
+    @State private var showDetail = false  // Controls modal presentation
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -75,6 +76,12 @@ struct RecipeView: View {
         }
 //        .frame(width: 120, height: 160) // Ensure the entire view has the same height
         .contentShape(Rectangle())
+        .onTapGesture {
+            showDetail = true
+        }
+        .sheet(isPresented: $showDetail) {
+            RecipeDetailView(recipe: recipe)
+        }
         .contextMenu {
             Button("Find Similar Recipes") {
                 chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
@@ -90,11 +97,11 @@ struct TagBubble: View {
     
     var body: some View {
         Text(text)
-            .font(.caption2)
+            .font(.system(size: 7, weight: .semibold))
             .bold()
 //            .padding(.vertical, 1)
             .padding(.horizontal, 6)
-            .background(color.opacity(0.2))
+            .background(color.opacity(0.1))
             .foregroundColor(color)
             .clipShape(Capsule())
     }

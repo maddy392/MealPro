@@ -15,14 +15,17 @@ struct HorizontalRecipeListView: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.headline)
+                .font(.title3)
                 .bold()
-                .padding(.leading, 10)
+                .padding(.leading, 0)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 7.5) {
                     ForEach(recipes, id: \.recipeId) { recipe in
                         RecipeView(recipe: recipe)
+                            .onTapGesture {
+                                print("Tapped Recipe: \(recipe)")
+                            }
                     }
                 }
                 .padding(.horizontal, 0)

@@ -6,9 +6,20 @@
 //
 
 import SwiftUI
+import Amplify
 
 struct HomeView: View {
     @EnvironmentObject var authController: AuthController
+    
+    // List of cuisines to display
+    let cuisines = [
+        "Italian", "Mexican", "American", "Asian", "Chinese",
+        "Japanese", "Indian", "Mediterranean", "French", "Greek",
+        "Spanish", "Thai", "Korean", "Vietnamese", "Latin American",
+        "British", "Caribbean", "Cajun", "German", "Irish",
+        "African", "European", "Eastern European", "Southern",
+        "Middle Eastern", "Nordic", "Jewish"
+    ]
     
     // Featured recipes with consistent keys
     private var featuredRecipes: [Recipe] {
@@ -23,10 +34,15 @@ struct HomeView: View {
     }
 
     @State private var currentIndex = 1 // Start at the first actual item
+    
+    // Dictionary mapping a cuisine to its fetched recipes.
+    @State private var recipesByCuisine: [String: [Recipe]] = [:]
+    // A set of cuisines that are currently being loaded.
+    @State private var loadingCuisines: Set<String> = []
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 20) {
                 HStack {
                     Text("Welcome, \(authController.email.split(separator: "@").first ?? "Guest")")
                         .font(.title2)
@@ -52,38 +68,7 @@ struct HomeView: View {
                     TabView(selection: $currentIndex) {
                         ForEach(0..<featuredRecipes.count, id: \.self) { index in
                             ZStack(alignment: .bottomLeading) {
-                                AsyncImage(url: URL(string: featuredRecipes[index].image!)) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(height: 200)
-                                        .clipped()
-                                        .cornerRadius(10)
-                                } placeholder: {
-                                    Rectangle()
-                                        .fill(Color.gray.opacity(0.3))
-                                        .frame(height: 200)
-                                        .cornerRadius(10)
-                                }
-                                
-                                // Radial Gradient Overlay
-                                RadialGradient(
-                                    gradient: Gradient(colors: [Color.black.opacity(1.5), Color.clear]),
-                                    center: .bottomLeading,
-                                    startRadius: 0,
-                                    endRadius: 150 // Adjust radius for size of the gradient
-                                )
-                                
-                                // Recipe Title
-                                Text(featuredRecipes[index].title)
-                                    .font(.subheadline)
-                                    .lineLimit(5)
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .padding(5)
-                                    .frame(maxWidth: 130, alignment: .leading)
-                                    .minimumScaleFactor(0.5) // Allow the font size to scale down (50% of the base font)
-                                
+                                LargeRecipeImageView(recipe: featuredRecipes[index])
                             }
                             .tag(index) // Assign tag for TabView
                         }
@@ -111,19 +96,143 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 10)
                 
-                // Horizontally Scrollable Recipe Section
-                HorizontalRecipeListView(title: "Featured Recipes", recipes: featuredRecipes)
-                HorizontalRecipeListView(title: "Trending Recipes", recipes: featuredRecipes)
-                HorizontalRecipeListView(title: "Featured Recipes", recipes: featuredRecipes)
-                HorizontalRecipeListView(title: "Trending Recipes", recipes: featuredRecipes)
-                HorizontalRecipeListView(title: "Featured Recipes", recipes: featuredRecipes)
-                HorizontalRecipeListView(title: "Trending Recipes", recipes: featuredRecipes)
+                ForEach(cuisines, id: \.self) { cuisine in
+                    VStack(alignment: .leading, spacing: 50) {
+//                        Text(
+                        if let recipes = recipesByCuisine[cuisine] {
+                            HorizontalRecipeListView(title: cuisine, recipes: recipes)
+                        } else if loadingCuisines.contains(cuisine) {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                            .frame(height: 150)
+                        } else {
+                            Color.clear
+                                .frame(height: 150)
+                                .onAppear {
+                                    Task {
+                                        print("Fetching recipes for cuisine: \(cuisine)")
+                                        await fetchRecipes(for: cuisine)
+                                    }
+                                }
+                        }
+                    }
+                    
+                }
                 
                 Spacer()
             }
         }
         .padding(.horizontal, 5) // Adds left and right padding
         .navigationTitle("Home")
+    }
+    
+    
+    private func fetchRecipes(for cuisine: String) async {
+        
+        DispatchQueue.main.async {
+            loadingCuisines.insert(cuisine)
+        }
+        
+        // Shortened GraphQL query: adjust the query string as needed.
+        let query = """
+        query MyQuery {
+          fetchRecipes(cuisine: "\(cuisine)") {
+            recipeId
+            title
+            image
+            imageType
+            vegetarian
+            vegan
+            glutenFree
+            veryHealthy
+            cheap
+            veryPopular
+            sustainable
+            lowFodmap
+            weightWatcherSmartPoints
+            gaps
+            preparationMinutes
+            cookingMinutes
+            aggregateLikes
+            healthScore
+            creditsText
+            sourceName
+            pricePerServing
+            readyInMinutes
+            servings
+            sourceUrl
+            summary
+            cuisines
+            dishTypes
+            diets
+            occasions
+            spoonacularSourceUrl
+            spoonacularScore
+            nutrition {
+              caloricBreakdown {
+                percentCarbs
+                percentFat
+                percentProtein
+              }
+              ingredients {
+                amount
+                id
+                name
+                unit
+              }
+              nutrients {
+                unit
+                percentOfDailyNeeds
+                name
+                amount
+              }
+              properties {
+                amount
+                name
+                unit
+              }
+            }
+            analyzedInstructions {
+              name
+              steps {
+                number
+                step
+                equipment {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+        """
+        let request = GraphQLRequest<[Recipe]>(
+            document: query,
+            variables: [:],
+            responseType: [Recipe].self,
+            decodePath: "fetchRecipes"
+        )
+        
+        do {
+            let response = try await Amplify.API.query(request: request)
+            switch response {
+            case .success(let fetchedRecipes):
+                // Update the dictionary with fetched recipes.
+                DispatchQueue.main.async {
+                    recipesByCuisine[cuisine] = fetchedRecipes
+                    loadingCuisines.remove(cuisine)
+                }
+            case .failure(let error):
+                print("Error fetching recipes for \(cuisine): \(error)")
+                DispatchQueue.main.async { loadingCuisines.remove(cuisine) }
+            }
+        } catch {
+            print("Unexpected error fetching recipes for \(cuisine): \(error.localizedDescription)")
+            DispatchQueue.main.async { loadingCuisines.remove(cuisine) }
+        }
     }
 }
 
