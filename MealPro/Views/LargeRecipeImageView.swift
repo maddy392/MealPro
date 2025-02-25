@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 // MARK: - LargeRecipeImageView
 struct LargeRecipeImageView: View {
@@ -14,19 +15,16 @@ struct LargeRecipeImageView: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             // Main Recipe Image
-            AsyncImage(url: URL(string: recipe.image ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 200)
-                    .clipped()
-                    .cornerRadius(10)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 200)
-                    .cornerRadius(10)
-            }
+            KFImage(URL(string: recipe.image ?? ""))
+                .resizable()
+                .roundCorner(
+                    radius: .widthFraction(0.1)
+                )
+                .serialize(as: .PNG)
+                .loadDiskFileSynchronously()
+                .cacheMemoryOnly()
+                .fade(duration: 0.25)
+                .frame(height: 200)
             
             // Radial Gradient Overlay for readability
             RadialGradient(

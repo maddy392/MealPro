@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct RecipeView: View {
+//    (string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg")
     let recipe: Recipe
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @EnvironmentObject var chatViewModel: ChatViewModel
@@ -17,20 +19,17 @@ struct RecipeView: View {
         VStack(alignment: .leading, spacing: 2) {
             ZStack(alignment: .topTrailing) {
                 // Recipe Image
-                AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg")) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 120, height: 120)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .allowsHitTesting(false)
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 120, height: 120)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                
+                KFImage(URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg"))
+                    .resizable()
+                    .roundCorner(
+                        radius: .widthFraction(0.1)
+                    )
+                    .serialize(as: .PNG)
+                    .loadDiskFileSynchronously()
+                    .cacheMemoryOnly()
+                    .fade(duration: 0.25)
+                    .frame(width: 120, height: 120)
+            
                 // Add to Favorites Button (top trailing)
                 Button(action: {
                     Task {

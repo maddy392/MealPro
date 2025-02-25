@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct ContentView: View {
     @EnvironmentObject var authController: AuthController
@@ -32,19 +33,6 @@ struct ContentView: View {
                     }
                     .badge(favoriteViewModel.favoritesCount)
             }
-//            .navigationTitle("MealPro") // Optional title
-//            .toolbar {
-//                ToolbarItem(placement: .topBarTrailing) {
-//                    Button(action: {
-//                        Task {
-//                            await authController.signOut()
-//                        }
-//                    }) {
-//                        Label("Sign Out", systemImage: "arrow.right.circle.fill")
-//                            .foregroundColor(.red)
-//                    }
-//                }
-//            }
         }
         .environmentObject(FavoriteViewModel.shared)
     }
