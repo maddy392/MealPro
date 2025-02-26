@@ -28,7 +28,7 @@ struct RecipeView: View {
                     .loadDiskFileSynchronously()
                     .cacheMemoryOnly()
                     .fade(duration: 0.25)
-                    .frame(width: 120, height: 120)
+                    .frame(width: 100, height: 100)
             
                 // Add to Favorites Button (top trailing)
                 Button(action: {
@@ -44,7 +44,7 @@ struct RecipeView: View {
                 }
                 .padding(2.5) // Align button to the top trailing corner
             }
-            .frame(width: 120, height: 120) // Ensure ZStack is constrained to the image's size
+            .frame(width: 100, height: 100) // Ensure ZStack is constrained to the image's size
             
             // Recipe Title
             Text(recipe.title)
@@ -53,7 +53,7 @@ struct RecipeView: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 //                .frame(maxWidth: 120)
-                .frame(width: 120, alignment: .topLeading)
+                .frame(width: 100, alignment: .topLeading)
                 .fixedSize(horizontal: false, vertical: true) // Let the view use its intrinsic height
             
             HStack(spacing: 4) {
@@ -71,7 +71,7 @@ struct RecipeView: View {
                     }
                 }
             }
-            .frame(maxWidth: 120, alignment: .leading)
+            .frame(maxWidth: 100, alignment: .leading)
         }
 //        .frame(width: 120, height: 160) // Ensure the entire view has the same height
         .contentShape(Rectangle())

@@ -33,7 +33,13 @@ export const handler: Schema["fetchRecipes"]["functionHandler"] = async (event, 
 
 		const data = await response.json();
 		console.log(data);
-		const recipes = data.results.map((recipe: any) => {
+
+		// Filter out recipes where analyzedInstructions is an empty array
+		const filteredRecipes = data.results.filter((recipe: any) => 
+			Array.isArray(recipe.analyzedInstructions) && recipe.analyzedInstructions.length > 0
+		);
+
+		const recipes = filteredRecipes.map((recipe: any) => {
 			const { id, ...rest } = recipe;
 			return { recipeId: id, ...rest };
 		});

@@ -32,7 +32,7 @@ struct HorizontalRecipeListView: View {
 //                .contentShape(Rectangle())
 //                .simultaneousGesture(DragGesture())
             }
-            .frame(height: 150) // Adjust height as needed
+            .frame(height: 120) // Adjust height as needed
         }
     }
 }

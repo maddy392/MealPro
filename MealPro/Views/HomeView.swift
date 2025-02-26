@@ -42,7 +42,7 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 20) {
+            LazyVStack(alignment: .leading, spacing: 20) {
                 HStack {
                     Text("Welcome, \(authController.email.split(separator: "@").first ?? "Guest")")
                         .font(.title2)
@@ -97,7 +97,7 @@ struct HomeView: View {
                 .padding(.horizontal, 10)
                 
                 ForEach(cuisines, id: \.self) { cuisine in
-                    VStack(alignment: .leading, spacing: 50) {
+                    VStack(alignment: .leading, spacing: 20) {
 //                        Text(
                         if let recipes = recipesByCuisine[cuisine] {
                             HorizontalRecipeListView(title: cuisine, recipes: recipes)
@@ -109,14 +109,22 @@ struct HomeView: View {
                             }
                             .frame(height: 150)
                         } else {
-                            Color.clear
-                                .frame(height: 150)
-                                .onAppear {
-                                    Task {
-                                        print("Fetching recipes for cuisine: \(cuisine)")
-                                        await fetchRecipes(for: cuisine)
+                            GeometryReader { geo in
+                                Color.clear
+                                    .frame(height: 150)
+                                    .onAppear {
+                                        let minY = geo.frame(in: .global).minY
+                                        let screenHeight = UIScreen.main.bounds.height
+                                        // Trigger fetch when the section is about to appear.
+                                        if minY < screenHeight {
+                                            Task {
+                                                print("Fetching recipes for cuisine: \(cuisine)")
+                                                await fetchRecipes(for: cuisine)
+                                            }
+                                        }
                                     }
-                                }
+                            }
+                            .frame(height: 150)
                         }
                     }
                     
