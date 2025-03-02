@@ -12,23 +12,29 @@ import AWSCognitoAuthPlugin
 class AuthController: ObservableObject {
     @Published var isAuthenticated = false
     @Published var isLoading = true
-    private var userId: String?
-    private var username: String?
-    
+    @Published var userId: String = ""
+    @Published var username: String = ""
+    @Published var email: String = ""
+
+    static let shared = AuthController()
+
     func checkAuthStatus() async {
         do {
             let session = try await Amplify.Auth.fetchAuthSession()
             if session.isSignedIn {
                 let currentUser = try await Amplify.Auth.getCurrentUser()
-                self.userId = currentUser.userId
-                self.username = currentUser.username
-                
-                await createUserIfNotExists(userId: currentUser.userId, username: currentUser.username)
-                
+                let attributes = try await Amplify.Auth.fetchUserAttributes()
+                let userEmail = attributes.first(where: { $0.key == .email })?.value ?? "No email"
+
                 await MainActor.run {
-                    self.isAuthenticated = session.isSignedIn
+                    self.userId = currentUser.userId
+                    self.username = currentUser.username
+                    self.email = userEmail
+                    self.isAuthenticated = true
                     self.isLoading = false
                 }
+
+                await createUserIfNotExists(userId: currentUser.userId, username: currentUser.username, email: userEmail)
             } else {
                 await MainActor.run {
                     self.isAuthenticated = false
@@ -39,12 +45,11 @@ class AuthController: ObservableObject {
             await MainActor.run {
                 self.isLoading = false
             }
-            print("Failed to check Auth Status \(error)")
+            print("❌ Failed to check Auth Status: \(error)")
         }
     }
-    
-    private func createUserIfNotExists(userId: String, username: String) async {
-        
+
+    private func createUserIfNotExists(userId: String, username: String, email: String) async {
         do {
             let userResponse = try await Amplify.API.query(request: .get(User.self, byIdentifier: .identifier(userId: userId))).get()
             if userResponse == nil {
@@ -52,36 +57,40 @@ class AuthController: ObservableObject {
                 let result = try await Amplify.API.mutate(request: .create(newUser))
                 switch result {
                 case .success(let createdUser):
-                    print("Created new user: \(createdUser.username)")
+                    print("✅ Created new user: \(createdUser.username)")
                 case .failure(let error):
-                    print("Failed to create user: \(error.errorDescription)")
+                    print("❌ Failed to create user: \(error.errorDescription)")
                 }
             } else {
-                print("User already exists in the database")
+                print("ℹ️ User already exists in the database")
             }
         } catch let error as APIError {
-            print("Failed to create User: ", error)
+            print("❌ Failed to create User: ", error)
         } catch {
-            print("Unexpected error: \(error)")
+            print("❌ Unexpected error: \(error)")
         }
     }
-    
+
     func signOut() async {
         let result = await Amplify.Auth.signOut()
         guard let signOutResult = result as? AWSCognitoSignOutResult else {
-            print("Signout Failed!")
+            print("❌ Signout Failed!")
             return
         }
-        
+
         switch signOutResult {
         case .complete:
             await MainActor.run {
                 self.isAuthenticated = false
+                self.userId = ""
+                self.username = ""
+                self.email = ""
             }
-        case .partial(_,_,_):
-            print("Partial sign out completed")
+            print("✅ Signed out successfully")
+        case .partial(_, _, _):
+            print("⚠️ Partial sign out completed")
         case .failed(let error):
-            print("Sign out failed with \(error)")
+            print("❌ Sign out failed with \(error)")
         }
     }
 }

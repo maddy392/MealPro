@@ -566,8 +566,16 @@ class BedrockKnowledgeBase:
                 name=self.network_policy_name,
                 policy=json.dumps(
                     [
-                        {'Rules': [{'Resource': ['collection/' + self.vector_store_name],
-                                    'ResourceType': 'collection'}],
+                        {'Rules': [
+                            {
+                                'Resource': ['collection/' + self.vector_store_name],
+                                    'ResourceType': 'collection'
+                            }, 
+                            {
+                                "Resource": ["collection/" + self.vector_store_name],
+                                "ResourceType": "dashboard"
+                            }
+                                    ],
                          'AllowFromPublic': True}
                     ]),
                 type='network'

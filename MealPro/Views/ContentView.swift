@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct ContentView: View {
     @EnvironmentObject var authController: AuthController
@@ -14,6 +15,10 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             TabView {
+                HomeView() // Add the HomeView as the first tab
+                    .tabItem {
+                        Label("Home", systemImage: "house.fill")
+                    }
                 AllRecipesView()
                     .tabItem {
                         Label("Recipes", systemImage: "frying.pan.fill")
@@ -28,16 +33,6 @@ struct ContentView: View {
                     }
                     .badge(favoriteViewModel.favoritesCount)
             }
-//            .navigationTitle("MealPro") // Optional title
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Sign Out") {
-                        Task {
-                            await authController.signOut()
-                        }
-                    }
-                }
-            }
         }
         .environmentObject(FavoriteViewModel.shared)
     }
@@ -45,6 +40,8 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AuthController()) // Provide AuthController
+        .environmentObject(FavoriteViewModel.shared) // Provide FavoriteViewModel
 }
 
 //public var id: Int { recipeId } // `id` property required by `Identifiable`

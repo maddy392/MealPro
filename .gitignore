@@ -36,5 +36,6 @@ agent/agenteval_traces/*
 agent/agenteval_summary.md
 
 kb/csv_data/*
+kb/__pycache__/*
 *.csv
 *.metadata.json

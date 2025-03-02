@@ -6,90 +6,81 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct RecipeView: View {
+//    (string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg")
     let recipe: Recipe
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @EnvironmentObject var chatViewModel: ChatViewModel
+    @State private var showDetail = false  // Controls modal presentation
     
     var body: some View {
-        HStack(alignment: .top) {
-            AsyncImage(url: URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-90x90.jpg")) { image in
-                image
+        VStack(alignment: .leading, spacing: 2) {
+            ZStack(alignment: .topTrailing) {
+                // Recipe Image
+                KFImage(URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg"))
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 90, height: 90)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-            } placeholder: {
-                ProgressView()
-                    .frame(width: 90, height: 90)
-            }
+                    .roundCorner(
+                        radius: .widthFraction(0.1)
+                    )
+                    .serialize(as: .PNG)
+                    .loadDiskFileSynchronously()
+                    .cacheMemoryOnly()
+                    .fade(duration: 0.25)
+                    .frame(width: 100, height: 100)
             
-            VStack(alignment: .leading, spacing: 2.5) {
-                Text(recipe.title)
-                    .font(.headline)
-                    .lineLimit(2)
-                
-                HStack (spacing: 5) {
-                    if let readyInMinutes = recipe.readyInMinutes {
-                        HStack(spacing: 2) {
-                            Image(systemName: "clock.badge.fill")
-                                .symbolRenderingMode(.multicolor)
-                            Text("\(readyInMinutes)m")
-                                .font(.caption2)
-                        }
+                // Add to Favorites Button (top trailing)
+                Button(action: {
+                    Task {
+                        await favoriteViewModel.toggleFavoriteStatus(for: recipe)
                     }
-                    
-                    if let glutenFree = recipe.glutenFree, glutenFree == true {
-                        Image("GF")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 20, height: 20) // Match size to SF Symbols
-                    }
-                    if let vegan = recipe.vegan, vegan {
-                        Text("Vegan")
-                            .font(.caption2)
-                            .foregroundStyle(.green)
-                    } else if let vegetarian = recipe.vegetarian, vegetarian {
-                        Text("Vegetarian")
-                            .font(.caption2)
-                            .foregroundStyle(.green)
-                    } else if let dairyFree = recipe.dairyFree, dairyFree {
-                        Text("Dairy")
-                            .font(.caption2)
-                            .foregroundStyle(.purple)
-                            .strikethrough()
-                    }
+                }) {
+                    Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
+                        .foregroundColor(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .black)
+                        .padding(5)
+                        .background(Color.white.opacity(0.8))
+                        .clipShape(Circle())
                 }
-                
-                if let healthScore = recipe.healthScore {
-                    Text("Health Score: \(healthScore)")
-                        .foregroundStyle(healthScore >= 50 ? .green : .red)
-                        .font(.caption)
+                .padding(2.5) // Align button to the top trailing corner
+            }
+            .frame(width: 100, height: 100) // Ensure ZStack is constrained to the image's size
+            
+            // Recipe Title
+            Text(recipe.title)
+                .font(.caption)
+                .bold()
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+//                .frame(maxWidth: 120)
+                .frame(width: 100, alignment: .topLeading)
+                .fixedSize(horizontal: false, vertical: true) // Let the view use its intrinsic height
+            
+            HStack(spacing: 4) {
+                if recipe.glutenFree == true {
+                    TagBubble(text: "GF", color: .green)
                 }
-                
-                HStack (spacing: 2) {
-                                        
-                    Text(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "Remove from Favorites:" : "Add to Favorites:")
-                        .font(.caption2)
-                        .foregroundStyle(.gray)
-                    
-                    Button(action: {
-                        Task {
-                            await favoriteViewModel.toggleFavoriteStatus(for: recipe)
-                        }
-                    }) {
-                        Image(systemName: favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoriteViewModel.isFavorited(recipeId: recipe.recipeId) ? .red : .gray)
+                if recipe.vegan == true {
+                    TagBubble(text: "V", color: .blue)
+                } else {
+                    if recipe.dairyFree == true {
+                        TagBubble(text: "DF", color: .purple)
                     }
-                    .buttonStyle(BorderlessButtonStyle())
-                    Spacer(minLength: 2)
+                    if recipe.vegetarian == true {
+                        TagBubble(text: "VG", color: .orange)
+                    }
                 }
             }
+            .frame(maxWidth: 100, alignment: .leading)
         }
-        .padding(.vertical, 5)
+//        .frame(width: 120, height: 160) // Ensure the entire view has the same height
         .contentShape(Rectangle())
-        .frame(maxWidth: UIScreen.main.bounds.width * 0.75, alignment: .leading) // Restrict width and align to leading
+        .onTapGesture {
+            showDetail = true
+        }
+        .sheet(isPresented: $showDetail) {
+            RecipeDetailView(recipe: recipe)
+        }
         .contextMenu {
             Button("Find Similar Recipes") {
                 chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
@@ -98,8 +89,25 @@ struct RecipeView: View {
     }
 }
 
+// 🔹 Custom Bubble View for Dietary Tags
+struct TagBubble: View {
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 7, weight: .semibold))
+            .bold()
+//            .padding(.vertical, 1)
+            .padding(.horizontal, 6)
+            .background(color.opacity(0.1))
+            .foregroundColor(color)
+            .clipShape(Capsule())
+    }
+}
+
 #Preview {
-    RecipeView(recipe: Recipe(recipeId: 644387, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/644387-90x90.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
+    RecipeView(recipe: Recipe(recipeId: 776505, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/776505-312x231.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
         .environmentObject(FavoriteViewModel.shared)
         .environmentObject(ChatViewModel())
 }

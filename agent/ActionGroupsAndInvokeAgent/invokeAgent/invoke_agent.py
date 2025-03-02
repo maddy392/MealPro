@@ -79,7 +79,12 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 			agentAliasId=agentAliasId,
 			sessionId=sessionId,
 			inputText=inputText, 
-			enableTrace=True, 
+			enableTrace=True,
+			sessionState={
+				'sessionAttributes' : {
+					'knowledgeBaseId': "N9R0CFA7QF"
+				}
+			}
 		)
 	except Exception as e:
 		output_msg = {

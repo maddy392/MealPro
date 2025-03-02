@@ -7,36 +7,53 @@
 
 import SwiftUI
 
-struct ChatMessage: Identifiable, Equatable {
-    let id = UUID()
-    let content: String?
-    let isCurrentUser: Bool
-    let recipe: Recipe?
+public struct ChatMessage: Identifiable, Equatable {
+    public var id = UUID()
+    public var date = Date()
+    public let direction: Direction
+    public let kind: Kind
     
-    // Convenience initializer for text messages
-    init(content: String, isCurrentUser: Bool) {
-        self.content = content
-        self.isCurrentUser = isCurrentUser
-        self.recipe = nil
+    public enum Kind: Equatable {
+        case text(String)
+        case recipes([Recipe])
+        
+        public static func == (lhs: Kind, rhs: Kind) -> Bool {
+            switch (lhs, rhs) {
+            case (.text(let lText), .text(let rText)):
+                return lText == rText
+            case (.recipes(let lRecipes), .recipes(let rRecipes)):
+                // Compare based on recipeId (order doesn't matter)
+                let lIds = Set(lRecipes.map { $0.recipeId })
+                let rIds = Set(rRecipes.map { $0.recipeId })
+                return lIds == rIds
+            default:
+                return false
+            }
+        }
     }
     
-    // Convenience initializer for messages containing recipes
-    init(recipe: Recipe, isCurrentUser: Bool) {
-        self.isCurrentUser = isCurrentUser
-        self.recipe = recipe
-        self.content = nil
+    public enum Direction: Equatable {
+        case outgoing, incoming
     }
     
-    // Custom Equatable conformance
-    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.content == rhs.content &&
-        lhs.isCurrentUser == rhs.isCurrentUser &&
-        lhs.recipe?.recipeId == rhs.recipe?.recipeId
+    // Convenience initializers
+    public init(text: String, direction: Direction) {
+        self.kind = .text(text)
+        self.direction = direction
+    }
+    
+    public init(recipe: Recipe, direction: Direction) {
+        self.kind = .recipes([recipe])
+        self.direction = direction
+    }
+    
+    public init(recipes: [Recipe], direction: Direction) {
+        self.kind = .recipes(recipes)
+        self.direction = direction
     }
 }
 
-struct SystemMessage: Identifiable {
+struct SystemMessage: Identifiable, Equatable {
     let id = UUID()
     let displayMessage: String
     var isFinal: Bool = false
