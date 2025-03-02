@@ -77,7 +77,8 @@ class ChatViewModel: ObservableObject {
                     request: request,
                     secretSigningKey: credentials.secretAccessKey,
                     accessKeyId: credentials.accessKeyId,
-                    sessionToken: sessionToken
+                    sessionToken: sessionToken,
+                    serviceName: "lambda"
                 )
                 
                 let (bytes, _) = try await URLSession.shared.bytes(for: signedRequest)

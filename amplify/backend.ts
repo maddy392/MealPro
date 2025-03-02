@@ -23,6 +23,27 @@ const invokePolicy = new iam.PolicyStatement({
 
 backend.auth.resources.authenticatedUserIamRole.addToPrincipalPolicy(invokePolicy);
 
+
+const opensearchPolicy = new iam.PolicyStatement({
+  sid: "AllowAuthUsersToAccessOpenSearch",
+  actions: [
+    "aoss:APIAccessAll",
+    "aoss:DashboardsAccessAll", 
+    "aoss:*", 
+    "aoss:DescribeCollection",
+    "aoss:DescribeIndex",
+    "aoss:ReadDocument",
+    "aoss:ListCollections"
+  ],
+  resources: [
+    "arn:aws:aoss:us-east-1:294090989896:collection/*",
+    "arn:aws:aoss:us-east-1:294090989896:dashboards/default", 
+    "arn:aws:aoss:us-east-1:294090989896:index/bedrock-sample-rag-02270857-c/*",
+  ]
+});
+
+backend.auth.resources.authenticatedUserIamRole.addToPrincipalPolicy(opensearchPolicy);
+
 const analyticsStack = backend.createStack("analytics-stack")
 
 // create a Pinpoint app

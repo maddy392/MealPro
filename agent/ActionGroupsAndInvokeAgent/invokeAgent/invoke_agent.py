@@ -82,7 +82,7 @@ async def bedrock_stream(invoke_agent_input: InvokeAgentInput):
 			enableTrace=True,
 			sessionState={
 				'sessionAttributes' : {
-					'knowledgeBaseId': "WGVGYSRSZJ"
+					'knowledgeBaseId': "N9R0CFA7QF"
 				}
 			}
 		)

@@ -54,7 +54,7 @@ knowledge_base_custom = BedrockKnowledgeBase(
 print("========================================================================================")
 # knowledge_base_standard.upload_directory(data_path)
 # use aws s3 sync instead
-# aws s3 sync all_recipes_with_ingredients/ s3://custom-chunking-kb-01100015/ --profile mealPro  --dryrun
+# aws s3 sync all_recipes_with_ingredients/ s3://custom-chunking-kb-02270857/ --profile mealPro  --dryrun
 
 # sync knowledge base
 knowledge_base_custom.start_ingestion_job()
