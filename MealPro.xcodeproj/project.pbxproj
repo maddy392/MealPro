@@ -12,6 +12,7 @@
 		8A6784772CB98CE30081EE7F /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = 8A6784762CB98CE30081EE7F /* Amplify */; };
 		8A6784982CB98EDD0081EE7F /* amplify_outputs.json in Resources */ = {isa = PBXBuildFile; fileRef = 8A6784972CB98EDD0081EE7F /* amplify_outputs.json */; };
 		8A67849B2CB98F5D0081EE7F /* Authenticator in Frameworks */ = {isa = PBXBuildFile; productRef = 8A67849A2CB98F5D0081EE7F /* Authenticator */; };
+		8AACB75C2D75396600EC16D9 /* ExyteGrid in Frameworks */ = {isa = PBXBuildFile; productRef = 8AACB75B2D75396600EC16D9 /* ExyteGrid */; };
 		8AD5371D2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 8AD5371C2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin */; };
 		8AFADE852D6D7CF500934927 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 8AFADE842D6D7CF500934927 /* Kingfisher */; };
 /* End PBXBuildFile section */
@@ -35,6 +36,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8AFADE852D6D7CF500934927 /* Kingfisher in Frameworks */,
+				8AACB75C2D75396600EC16D9 /* ExyteGrid in Frameworks */,
 				8A67849B2CB98F5D0081EE7F /* Authenticator in Frameworks */,
 				8A6784772CB98CE30081EE7F /* Amplify in Frameworks */,
 				8AD5371D2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin in Frameworks */,
@@ -97,6 +99,7 @@
 				8A67849A2CB98F5D0081EE7F /* Authenticator */,
 				8AD5371C2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin */,
 				8AFADE842D6D7CF500934927 /* Kingfisher */,
+				8AACB75B2D75396600EC16D9 /* ExyteGrid */,
 			);
 			productName = MealPro;
 			productReference = 8A6784572CB987460081EE7F /* MealPro.app */;
@@ -130,6 +133,7 @@
 				8A6784712CB98CE30081EE7F /* XCRemoteSwiftPackageReference "amplify-swift" */,
 				8A6784992CB98F5D0081EE7F /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */,
 				8AFADE832D6D7CF500934927 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				8AACB75A2D75396600EC16D9 /* XCRemoteSwiftPackageReference "Grid" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8A6784582CB987460081EE7F /* Products */;
@@ -380,6 +384,14 @@
 				minimumVersion = 1.1.8;
 			};
 		};
+		8AACB75A2D75396600EC16D9 /* XCRemoteSwiftPackageReference "Grid" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/exyte/Grid";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
 		8AFADE832D6D7CF500934927 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -410,6 +422,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8A6784992CB98F5D0081EE7F /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */;
 			productName = Authenticator;
+		};
+		8AACB75B2D75396600EC16D9 /* ExyteGrid */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AACB75A2D75396600EC16D9 /* XCRemoteSwiftPackageReference "Grid" */;
+			productName = ExyteGrid;
 		};
 		8AD5371C2D5FF1E700839E13 /* AWSPinpointAnalyticsPlugin */ = {
 			isa = XCSwiftPackageProductDependency;

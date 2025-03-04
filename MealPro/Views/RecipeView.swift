@@ -11,9 +11,17 @@ import Kingfisher
 struct RecipeView: View {
 //    (string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg")
     let recipe: Recipe
+    let size: CGFloat
+    
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @EnvironmentObject var chatViewModel: ChatViewModel
     @State private var showDetail = false  // Controls modal presentation
+    
+    // ✅ Default size to 100 if not provided
+    init(recipe: Recipe, size: CGFloat = 100) {
+        self.recipe = recipe
+        self.size = size
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -28,7 +36,7 @@ struct RecipeView: View {
                     .loadDiskFileSynchronously()
                     .cacheMemoryOnly()
                     .fade(duration: 0.25)
-                    .frame(width: 100, height: 100)
+                    .frame(width: size, height: size)
             
                 // Add to Favorites Button (top trailing)
                 Button(action: {
@@ -44,7 +52,7 @@ struct RecipeView: View {
                 }
                 .padding(2.5) // Align button to the top trailing corner
             }
-            .frame(width: 100, height: 100) // Ensure ZStack is constrained to the image's size
+            .frame(width: size, height: size) // Ensure ZStack is constrained to the image's size
             
             // Recipe Title
             Text(recipe.title)
@@ -53,7 +61,7 @@ struct RecipeView: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 //                .frame(maxWidth: 120)
-                .frame(width: 100, alignment: .topLeading)
+                .frame(width: size, alignment: .topLeading)
                 .fixedSize(horizontal: false, vertical: true) // Let the view use its intrinsic height
             
             HStack(spacing: 4) {
@@ -106,8 +114,15 @@ struct TagBubble: View {
     }
 }
 
+// MARK: - 🔹 Preview with Different Sizes
 #Preview {
-    RecipeView(recipe: Recipe(recipeId: 776505, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/776505-312x231.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40))
-        .environmentObject(FavoriteViewModel.shared)
-        .environmentObject(ChatViewModel())
+    VStack {
+        RecipeView(recipe: Recipe(recipeId: 776505, title: "Garlicky Kale", image: "https://img.spoonacular.com/recipes/776505-312x231.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: true, veryPopular: true, healthScore: 42, readyInMinutes: 40), size: 100)
+        
+        RecipeView(recipe: Recipe(recipeId: 776506, title: "Avocado Toast", image: "https://img.spoonacular.com/recipes/776506-312x231.jpg", vegetarian: true, vegan: true, glutenFree: false, dairyFree: false, cheap: true, veryPopular: true, healthScore: 50, readyInMinutes: 10), size: 120)
+        
+        RecipeView(recipe: Recipe(recipeId: 776506, title: "Quinoa Salad", image: "https://img.spoonacular.com/recipes/776506-312x231.jpg", vegetarian: true, vegan: true, glutenFree: true, dairyFree: true, cheap: false, veryPopular: true, healthScore: 80, readyInMinutes: 20), size: 200)
+    }
+    .environmentObject(FavoriteViewModel.shared)
+    .environmentObject(ChatViewModel())
 }

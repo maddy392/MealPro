@@ -32,6 +32,10 @@ struct ContentView: View {
                         Label("Favorites", systemImage: "heart.fill")
                     }
                     .badge(favoriteViewModel.favoritesCount)
+                SearchView()
+                    .tabItem {
+                        Label("Search", systemImage: "magnifyingglass")
+                    }
             }
         }
         .environmentObject(FavoriteViewModel.shared)

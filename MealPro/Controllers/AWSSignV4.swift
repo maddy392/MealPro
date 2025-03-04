@@ -80,9 +80,9 @@ func signRequest(request: URLRequest, secretSigningKey: String, accessKeyId: Str
     signedRequest.addValue(authorization, forHTTPHeaderField: "Authorization")
 
     // Debugging Output
-    print("\n🔹 Canonical Request:\n\(canonicalRequest)\n")
-    print("\n🔹 String to Sign:\n\(stringToSign)\n")
-    print("\n🔹 Authorization Header: \(authorization)\n")
+//    print("\n🔹 Canonical Request:\n\(canonicalRequest)\n")
+//    print("\n🔹 String to Sign:\n\(stringToSign)\n")
+//    print("\n🔹 Authorization Header: \(authorization)\n")
 
     return signedRequest
 }

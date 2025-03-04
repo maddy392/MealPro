@@ -37,5 +37,6 @@ agent/agenteval_summary.md
 
 kb/csv_data/*
 kb/__pycache__/*
+kb/modify_recipe_data.py
 *.csv
 *.metadata.json

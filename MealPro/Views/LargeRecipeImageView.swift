@@ -67,6 +67,7 @@ struct LargeRecipeImageView: View {
             }
             .padding(.bottom, 5)
         }
+        .padding(5)
     }
 }
 
