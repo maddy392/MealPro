@@ -13,14 +13,14 @@ struct WideRecipeView: View {
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @EnvironmentObject var chatViewModel: ChatViewModel
     @State private var showDetail = false
-    
+
     var body: some View {
-        HStack(spacing: 12) {
-            // Recipe Image
+        HStack(alignment: .top, spacing: 12) {
+            // Recipe Image with Favorite Button overlay
             KFImage(URL(string: "https://img.spoonacular.com/recipes/\(recipe.recipeId)-480x360.jpg"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: 120, height: 120)
+                .frame(width: 100, height: 80)
                 .clipped()
                 .cornerRadius(8)
                 .overlay(
@@ -39,86 +39,79 @@ struct WideRecipeView: View {
                                     .background(Color.white.opacity(0.8))
                                     .clipShape(Circle())
                             }
+                            .buttonStyle(PlainButtonStyle()) 
                         }
                         Spacer()
                     }
                     .padding(4)
                 )
             
-            // Recipe Info
+            // 2. Recipe Info VStack
             VStack(alignment: .leading, spacing: 6) {
-                // Title
+                // Title (allows up to 2 lines, then truncates with ellipsis)
                 Text(recipe.title)
                     .font(.headline)
                     .lineLimit(2)
+                    .truncationMode(.tail)
                     .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true) // Let the view use its intrinsic height
                 
                 // Dietary Tag Bubbles
                 HStack(spacing: 4) {
-                    if recipe.glutenFree == true {
-                        TagBubble(text: "GF", color: .green)
-                    }
-                    if recipe.vegan == true {
-                        TagBubble(text: "Vegan", color: .blue)
-                    } else {
-                        if recipe.dairyFree == true {
-                            TagBubble(text: "DF", color: .purple)
-                        }
-                        if recipe.vegetarian == true {
-                            TagBubble(text: "VG", color: .orange)
-                        }
+                    if recipe.glutenFree == true { TagBubble(text: "GF", color: .green) }
+                    if recipe.vegan == true { TagBubble(text: "Vegan", color: .blue) }
+                    else {
+                        if recipe.dairyFree == true { TagBubble(text: "DF", color: .purple) }
+                        if recipe.vegetarian == true { TagBubble(text: "VG", color: .orange) }
                     }
                 }
                 
-                // Additional Info (e.g., ready in minutes)
+                // Additional Info: Ready in minutes
                 if let minutes = recipe.readyInMinutes {
                     Text("Ready in \(minutes) min")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
-                Spacer()
-                
-                HStack {
-                    Spacer()
-                    Menu {
-                        Button("Find Similar Recipes") {
-                            chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
-                        }
-                        Button("Share") {
-                            // Implement share action here
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
-                            .padding(8)
-                    }
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(minWidth: 200, maxWidth: .infinity, alignment: .topLeading)
+            
+            // 3. Vertical Menu Button
+            Menu {
+                Button("Find Similar Recipes") {
+                    chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
+                }
+                Button("Share") {
+                    // Implement share action here
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .foregroundColor(.gray)
+                    .padding(8)
+            }
         }
-        .padding()
-        // Configurable border based on recipe properties:
-        .frame(height: 150)
+        .padding(5)
+        .frame(maxWidth: .infinity) // Constrain overall cell size
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(borderColor(for: recipe), lineWidth: 2)
+                .stroke(borderColor(for: recipe), lineWidth: 0.5)
         )
-        .padding(.horizontal)
+//        .shadow(color: Color.black.opacity(0.75), radius: 4, x: 0, y: 2)
+        .padding(.horizontal, 5)
         .contentShape(Rectangle())
-        // Tapping the view opens detail (for example, via a sheet)
         .onTapGesture {
-            // Replace with your desired navigation behavior.
             print("Tapped recipe: \(recipe.title)")
             showDetail = true
         }
         .sheet(isPresented: $showDetail) {
             RecipeDetailView(recipe: recipe)
         }
+        .contextMenu {
+            Button("Find Similar Recipes") {
+                chatViewModel.sendMessage("Give me more recipes like this", recipe: recipe)
+            }
+        }
     }
     
-    // Helper function to determine border color
+    // Determine border color based on dietary properties
     private func borderColor(for recipe: Recipe) -> Color {
         if let vegan = recipe.vegan, vegan {
             return .green
