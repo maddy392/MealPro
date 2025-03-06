@@ -71,6 +71,18 @@ struct WideRecipeView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                
+                // Macronutrient Breakdown Bar
+//                if let nutrition = recipe.nutrition, let caloricBreakdown = nutrition.caloricBreakdown {
+//                    MacronutrientBreakdownView(breakdown: caloricBreakdown)
+//                        .frame(height: 6)
+//                }
+                
+                // create a line with thickness may be 2; that has 3 colors; proportions for carbs, protein and fat.. and that will be given in public struct CalorificBreakdown: Embeddable {
+//                var percentProtein: Double?
+//                var percentFat: Double?
+//                var percentCarbs: Double?
+//              }
             }
             .frame(minWidth: 200, maxWidth: .infinity, alignment: .topLeading)
             
@@ -90,10 +102,10 @@ struct WideRecipeView: View {
         }
         .padding(5)
         .frame(maxWidth: .infinity) // Constrain overall cell size
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(borderColor(for: recipe), lineWidth: 0.5)
-        )
+//        .background(
+//            RoundedRectangle(cornerRadius: 10)
+//                .stroke(borderColor(for: recipe), lineWidth: 0.5)
+//        )
 //        .shadow(color: Color.black.opacity(0.75), radius: 4, x: 0, y: 2)
         .padding(.horizontal, 5)
         .contentShape(Rectangle())
@@ -119,6 +131,33 @@ struct WideRecipeView: View {
             return .orange
         } else {
             return .gray
+        }
+    }
+    
+    struct MacronutrientBreakdownView: View {
+        let breakdown: CaloricBreakdown
+
+        var body: some View {
+            GeometryReader { geometry in
+                HStack(spacing: 0) {
+                    // Carbs
+                    Rectangle()
+                        .fill(Color.blue)
+                        .frame(width: geometry.size.width * (breakdown.percentCarbs ?? 0) / 100)
+                    
+                    // Protein
+                    Rectangle()
+                        .fill(Color.green)
+                        .frame(width: geometry.size.width * (breakdown.percentProtein ?? 0) / 100)
+                    
+                    // Fat
+                    Rectangle()
+                        .fill(Color.orange)
+                        .frame(width: geometry.size.width * (breakdown.percentFat ?? 0) / 100)
+                }
+            }
+            .frame(height: 6) // Adjust thickness of the bar
+            .clipShape(Capsule()) // Smooth rounded edges
         }
     }
 }
@@ -174,7 +213,7 @@ struct WideRecipeView: View {
         occasions: nil,
         spoonacularSourceUrl: nil,
         spoonacularScore: nil,
-        nutrition: nil,
+        nutrition: RecipeNutrition(caloricBreakdown: CaloricBreakdown(percentProtein: 20, percentFat: 60, percentCarbs: 20)),
         analyzedInstructions: nil,
         userFavorites: nil,
         createdAt: nil,

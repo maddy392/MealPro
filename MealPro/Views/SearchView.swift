@@ -15,8 +15,8 @@ struct SearchView: View {
             List {
                 ForEach(viewModel.searchResults) { recipe in
                     WideRecipeView(recipe: recipe)
-                        .listRowSeparator(.hidden, edges: .all)
-                        .listRowInsets(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+//                        .listRowSeparator(.hidden, edges: .all)
+                        .listRowInsets(EdgeInsets(top: 2.5, leading: 0, bottom: 2.5, trailing: 0))
                 }
             }
             .listStyle(.plain)
@@ -33,4 +33,5 @@ struct SearchView: View {
 
 #Preview {
     SearchView()
+        .environmentObject(FavoriteViewModel.shared)
 }

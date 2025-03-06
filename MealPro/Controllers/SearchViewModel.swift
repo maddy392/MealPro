@@ -14,6 +14,16 @@ import AWSPluginsCore
 class SearchViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var searchResults: [Recipe] = []
+    
+    init() {
+        searchResults = [
+            Recipe(recipeId: 945221, title: "Watching What I Eat: Peanut Butter Banana Oat Breakfast Cookies with Carob / Chocolate Chips", image: "https://img.spoonacular.com/recipes/945221-636x393.jpg"),
+            Recipe(recipeId: 715449, title: "How to Make OREO Turkeys for Thanksgiving", image: "https://img.spoonacular.com/recipes/715449-636x393.jpg", vegetarian: true),
+            Recipe(recipeId: 776505, title: "Sausage & Pepperoni Stromboli", image: "https://img.spoonacular.com/recipes/776505-636x393.jpg", dairyFree: true),
+            Recipe(recipeId: 716410, title: "Cannoli Ice Cream w. Pistachios & Dark Chocolate", image: "https://img.spoonacular.com/recipes/716410-636x393.jpg", vegan: true),
+            Recipe(recipeId: 715467, title: "Turkey Pot Pie", image: "https://img.spoonacular.com/recipes/715467-636x393.jpg", glutenFree: true, readyInMinutes: 30)
+        ]
+    }
 
     private let baseURL = "https://p4z8il9otrl0ruy8wqxf.us-east-1.aoss.amazonaws.com/_search"
 
@@ -24,6 +34,11 @@ class SearchViewModel: ObservableObject {
             self.searchResults = []
             }
             return
+        }
+        
+        // Clear dummy data before fetching real results
+        DispatchQueue.main.async {
+            self.searchResults = []
         }
 
         let query: [String: Any] = [
