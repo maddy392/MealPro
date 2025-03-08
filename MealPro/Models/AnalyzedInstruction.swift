@@ -3,6 +3,6 @@ import Amplify
 import Foundation
 
 public struct AnalyzedInstruction: Embeddable {
-  public var name: String?
-  public var steps: [InstructionStep?]?
+  var name: String?
+  var steps: [InstructionStep?]?
 }

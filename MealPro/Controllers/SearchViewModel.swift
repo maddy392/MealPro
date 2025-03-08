@@ -14,18 +14,82 @@ import AWSPluginsCore
 class SearchViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var searchResults: [Recipe] = []
+    @Published var recentSearches: [SearchHistory] = []
     
-    init() {
-        searchResults = [
-            Recipe(recipeId: 945221, title: "Watching What I Eat: Peanut Butter Banana Oat Breakfast Cookies with Carob / Chocolate Chips", image: "https://img.spoonacular.com/recipes/945221-636x393.jpg"),
-            Recipe(recipeId: 715449, title: "How to Make OREO Turkeys for Thanksgiving", image: "https://img.spoonacular.com/recipes/715449-636x393.jpg", vegetarian: true),
-            Recipe(recipeId: 776505, title: "Sausage & Pepperoni Stromboli", image: "https://img.spoonacular.com/recipes/776505-636x393.jpg", dairyFree: true),
-            Recipe(recipeId: 716410, title: "Cannoli Ice Cream w. Pistachios & Dark Chocolate", image: "https://img.spoonacular.com/recipes/716410-636x393.jpg", vegan: true),
-            Recipe(recipeId: 715467, title: "Turkey Pot Pie", image: "https://img.spoonacular.com/recipes/715467-636x393.jpg", glutenFree: true, readyInMinutes: 30)
-        ]
-    }
+//    init() {
+//        searchResults = [
+//            Recipe(recipeId: 945221, title: "Watching What I Eat: Peanut Butter Banana Oat Breakfast Cookies with Carob / Chocolate Chips", image: "https://img.spoonacular.com/recipes/945221-636x393.jpg"),
+//            Recipe(recipeId: 715449, title: "How to Make OREO Turkeys for Thanksgiving", image: "https://img.spoonacular.com/recipes/715449-636x393.jpg", vegetarian: true),
+//            Recipe(recipeId: 776505, title: "Sausage & Pepperoni Stromboli", image: "https://img.spoonacular.com/recipes/776505-636x393.jpg", dairyFree: true),
+//            Recipe(recipeId: 716410, title: "Cannoli Ice Cream w. Pistachios & Dark Chocolate", image: "https://img.spoonacular.com/recipes/716410-636x393.jpg", vegan: true),
+//            Recipe(recipeId: 715467, title: "Turkey Pot Pie", image: "https://img.spoonacular.com/recipes/715467-636x393.jpg", glutenFree: true, readyInMinutes: 30)
+//        ]
+//    }
 
     private let baseURL = "https://p4z8il9otrl0ruy8wqxf.us-east-1.aoss.amazonaws.com/_search"
+    
+    func fetchRecentSearches() async {
+        do {
+            let user = try await Amplify.Auth.getCurrentUser()
+            let searchKeys = SearchHistory.keys
+
+            // Define predicate: Fetch searches for the current user
+            let predicate = searchKeys.userId == user.userId
+            let request = GraphQLRequest<SearchHistory>.list(
+                SearchHistory.self,
+                where: predicate,
+                limit: 10 // Fetch latest 5 searches
+            )
+
+            let result = try await Amplify.API.query(request: request)
+
+            switch result {
+            case .success(let searches):
+                // Sort by latest timestamp
+                let sortedSearches = searches.sorted(by: { $0.timestamp > $1.timestamp })
+                
+                // Remove duplicates while preserving order
+                var uniqueSearches = [SearchHistory]()
+                var seenQueries = Set<String>()
+                
+                for search in sortedSearches {
+                    if !seenQueries.contains(search.query.lowercased()) {
+                        seenQueries.insert(search.query.lowercased())
+                        uniqueSearches.append(search)
+                    }
+                }
+
+                DispatchQueue.main.async {
+                    self.recentSearches = Array(uniqueSearches.prefix(5)) // Sort by latest
+                }
+                print("✅ Successfully retrieved recent searches: \(searches.elements)")
+
+            case .failure(let error):
+                print("❌ Failed to fetch search history: \(error.errorDescription)")
+            }
+        } catch let error as APIError {
+            print("❌ API Error fetching search history: \(error)")
+        } catch {
+            print("❌ Unexpected error: \(error)")
+        }
+    }
+    
+    func saveSearchQuery(_ query: String) async {
+        guard !query.isEmpty else { return }
+        
+        do {
+            let user = try await Amplify.Auth.getCurrentUser()
+            let searchEntry = SearchHistory(userId: user.userId, query: query, timestamp: Int(Date().timeIntervalSince1970))
+
+            // Store in database
+            let _ = try await Amplify.API.mutate(request: .create(searchEntry))
+            
+            // Fetch updated history
+            await fetchRecentSearches()
+        } catch {
+            print("❌ Failed to save search query: \(error)")
+        }
+    }
 
     func searchRecipes() async {
         print("searching for \(searchText)")
@@ -40,10 +104,14 @@ class SearchViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.searchResults = []
         }
+        
+        Task {
+            await self.saveSearchQuery(searchText)
+        }
 
         let query: [String: Any] = [
             "size": 10,
-            "_source": ["recipeId", "title", "vegetarian", "vegan", "dairyFree", "glutenFree"],
+            "_source": ["recipeId", "title", "vegetarian", "vegan", "dairyFree", "glutenFree", "readyInMinutes"],
             "query": [
                 "bool": [
                     "must": [
@@ -82,12 +150,12 @@ class SearchViewModel: ObservableObject {
 
                 let (data, _) = try await URLSession.shared.data(for: signedRequest)
                 
-                // Print the raw JSON response
-                if let rawJson = String(data: data, encoding: .utf8) {
-                    print("🔹 Raw JSON response:\n\(rawJson)")
-                } else {
-                    print("⚠️ Unable to convert response data to String.")
-                }
+//                // Print the raw JSON response
+//                if let rawJson = String(data: data, encoding: .utf8) {
+//                    print("🔹 Raw JSON response:\n\(rawJson)")
+//                } else {
+//                    print("⚠️ Unable to convert response data to String.")
+//                }
                 
                 if let decodedResponse = try? JSONDecoder().decode(OpenSearchResponse.self, from: data) {
 //                    print(decodedResponse)

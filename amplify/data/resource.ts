@@ -119,6 +119,16 @@ const schema = a.schema({
     }).identifier(['recipeId'])
     .authorization((allow) => allow.authenticated()), 
 
+  SearchHistory: a.model({
+    userId: a.id().required(), 
+    query: a.string().required(), 
+    timestamp: a.timestamp().required()
+  }).secondaryIndexes((index) => [
+    index("userId")
+    .queryField("searchHistoryByUser")
+    .sortKeys(["timestamp"])])
+    .authorization((allow) => allow.owner()),
+
   fetchRecipes: a
     .query()
     .arguments({
